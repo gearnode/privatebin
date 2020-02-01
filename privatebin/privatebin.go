@@ -5,7 +5,10 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"golang.org/x/crypto/pbkdf2"
+	"math/rand"
 	"net/url"
 	"time"
 )
@@ -43,11 +46,11 @@ type PasteSpec struct {
 	Compression string
 }
 
-func (ps *PastSpec) SpecArray() []interface{} {
+func (ps *PasteSpec) SpecArray() []interface{} {
 	return []interface{}{
 		ps.IV,
-		ps.Salft,
-		ps.Interation,
+		ps.Salt,
+		ps.Iterations,
 		ps.KeySize,
 		ps.TagSize,
 		ps.Algorithm,
@@ -61,21 +64,28 @@ func NewClient(host string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{URL: url}
+	return &Client{URL: *url}, nil
 }
 
-func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
+func (c *Client) CreatePaste(message []byte) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
+	if err != nil {
+		return nil, err
+	}
+
+	pasteData, err := encrypt(masterKey, message)
 	if err != nil {
 		return nil, err
 	}
 
 	createPasteReq := &CreatePasteRequest{
 		V:     2,
-		AData: "",
+		AData: pasteData.adata(),
 		Meta:  CreatePasteRequestMeta{Expire: "1week"},
-		CT:    base64.RawStdEncoding.EncodeToString(""),
+		CT:    base64.RawStdEncoding.EncodeToString(pasteData.Data),
 	}
+
+	fmt.Printf("%#v\n", createPasteReq)
 
 	return nil, nil
 }
@@ -83,15 +93,28 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 func generateRandomBytes(n uint32) ([]byte, error) {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
+	if _, err := rand.Read(b); err != nil {
 		return nil, err
 	}
 	return b, nil
 }
 
-func encrypt(masterKey []byte) (*PasteData, error) {
-	vector, err := generateRandomBytes(12)
+type PasteData struct {
+	*PasteSpec
+	Data []byte
+}
+
+func (p *PasteData) adata() []interface{} {
+	return []interface{}{
+		p.SpecArray(),
+		"plaintext",
+		0,
+		0,
+	}
+}
+
+func encrypt(masterKey []byte, message []byte) (*PasteData, error) {
+	iv, err := generateRandomBytes(12)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +125,8 @@ func encrypt(masterKey []byte) (*PasteData, error) {
 	}
 
 	paste := &PasteData{
-		PasteSpec: &PastSpec{
-			IV:          base64.RawStdEncoding.EncodeToString(vector),
+		PasteSpec: &PasteSpec{
+			IV:          base64.RawStdEncoding.EncodeToString(iv),
 			Salt:        base64.RawStdEncoding.EncodeToString(salt),
 			Iterations:  100000,
 			KeySize:     256,
@@ -114,7 +137,12 @@ func encrypt(masterKey []byte) (*PasteData, error) {
 		},
 	}
 
-	key := pbkdf2.Key(masterKey, salt, paste.Iteration, 32, sha256.New)
+	key := pbkdf2.Key(masterKey, salt, paste.Iterations, 32, sha256.New)
+
+	adata, err := json.Marshal(paste.adata())
+	if err != nil {
+		return nil, err
+	}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -126,9 +154,9 @@ func encrypt(masterKey []byte) (*PasteData, error) {
 		return nil, err
 	}
 
-	// TODO: 1. get the "adata" for the paste.
-	//       2. sign the message
-	//       3. update paste data
+	data := gcm.Seal(nil, iv, message, adata)
+
+	paste.Data = data
 
 	return paste, nil
 }
