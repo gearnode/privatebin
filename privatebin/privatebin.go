@@ -1,15 +1,20 @@
 package privatebin
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/pbkdf2"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -67,13 +72,22 @@ func NewClient(host string) (*Client, error) {
 	return &Client{URL: *url}, nil
 }
 
-func (c *Client) CreatePaste(message []byte) (*CreatePasteResponse, error) {
+type PasteContent struct {
+	Paste string `json:"paste"`
+}
+
+func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
 		return nil, err
 	}
 
-	pasteData, err := encrypt(masterKey, message)
+	pasteContent, err := json.Marshal(&PasteContent{Paste: message})
+	if err != nil {
+		return nil, err
+	}
+
+	pasteData, err := encrypt(masterKey, pasteContent)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +99,44 @@ func (c *Client) CreatePaste(message []byte) (*CreatePasteResponse, error) {
 		CT:    base64.RawStdEncoding.EncodeToString(pasteData.Data),
 	}
 
-	fmt.Printf("%#v\n", createPasteReq)
+	body, err := json.Marshal(createPasteReq)
+	if err != nil {
+		panic(err)
+	}
+
+	req, err := http.NewRequest("POST", "https://privatebin.net", bytes.NewBuffer(body))
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
+	req.Header.Set("X-Requested-With", "JSONHttpRequest")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Close the request body once we are done.
+	defer func() {
+		err := res.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	response, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	pasteResponse := &CreatePasteResponse{}
+
+	err = json.Unmarshal(response, &pasteResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%s%s#%s\n", "https://privatebin.net", pasteResponse.URL, base58.Encode(masterKey))
 
 	return nil, nil
 }
