@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	// "github.com/btcsuite/btcutil/base58"
 	"github.com/gearnode/base58"
 	"golang.org/x/crypto/pbkdf2"
 	"io/ioutil"
@@ -20,7 +19,9 @@ import (
 )
 
 type Client struct {
-	URL url.URL
+	URL      url.URL
+	Username string
+	Password string
 }
 
 type CreatePasteRequest struct {
@@ -105,41 +106,33 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 		panic(err)
 	}
 
-	req, err := http.NewRequest("POST", "https://privatebin.net", bytes.NewBuffer(body))
-
+	req, err := http.NewRequest("POST", c.URL.String(), bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")
+	req.SetBasicAuth(c.Username, c.Password)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
-	// Close the request body once we are done.
-	defer func() {
-		err := res.Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
-	response, err := ioutil.ReadAll(res.Body)
+	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	pasteResponse := &CreatePasteResponse{}
-
-	err = json.Unmarshal(response, &pasteResponse)
+	pasteResponse := CreatePasteResponse{}
+	err = json.Unmarshal(resBody, &pasteResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("%s%s#%s\n", "https://privatebin.net", pasteResponse.URL, base58.Encode(masterKey))
+	pasteResponse.URL = fmt.Sprintf("%s%s#%s\n", "https://privatebin.net", pasteResponse.URL, base58.Encode(masterKey))
 
-	return nil, nil
+	return &pasteResponse, nil
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
