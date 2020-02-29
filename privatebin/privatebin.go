@@ -115,6 +115,10 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("pastebin server responds with %q status code", res.Status)
+	}
+
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read response body: %w", err)
