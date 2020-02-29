@@ -101,6 +101,9 @@ func loadCfgFile(path string) (*Cfg, error) {
 func main() {
 	cfgPath := flag.String("cfg-file", "", "the path of the configuration file")
 	binName := flag.String("bin", "", "the privatebin name to use")
+	expire := flag.String("expire", "", "")
+	openDiscussion := flag.Bool("open-discussion", false, "")
+	burnAfterReading := flag.Bool("burn-after-reading", false, "")
 	help := flag.Bool("help", false, "Shows this help message")
 
 	flag.Parse()
@@ -144,6 +147,18 @@ func main() {
 
 	if err := scanner.Err(); err != nil {
 		fail("cannot read stdin: %v", err)
+	}
+
+	if expire != nil {
+		binCfg.Expire = *expire
+	}
+
+	if openDiscussion != nil {
+		binCfg.OpenDiscussion = openDiscussion
+	}
+
+	if burnAfterReading != nil {
+		binCfg.BurnAfterReading = burnAfterReading
 	}
 
 	resp, err := client.CreatePaste(
