@@ -104,6 +104,7 @@ func main() {
 	expire := flag.String("expire", "", "the time to live of the paste")
 	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
 	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
+	formatter := flag.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
 	help := flag.Bool("help", false, "shows this help message")
 
 	flag.Parse()
@@ -159,6 +160,10 @@ func main() {
 
 	if burnAfterReading != nil {
 		binCfg.BurnAfterReading = burnAfterReading
+	}
+
+	if *formatter != "" {
+		binCfg.Formatter = *formatter
 	}
 
 	resp, err := client.CreatePaste(
