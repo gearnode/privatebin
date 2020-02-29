@@ -77,17 +77,17 @@ type PasteContent struct {
 func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot generate random bytes: %w", err)
 	}
 
 	pasteContent, err := json.Marshal(&PasteContent{Paste: message})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot marshal paste content: %w", err)
 	}
 
 	pasteData, err := encrypt(masterKey, pasteContent)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot encrypt data: %w", err)
 	}
 
 	createPasteReq := &CreatePasteRequest{
@@ -99,7 +99,7 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 
 	body, err := json.Marshal(createPasteReq)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("cannot marshal paste request: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", c.URL.String(), bytes.NewBuffer(body))
@@ -111,22 +111,33 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot execute http request: %w", err)
 	}
 	defer res.Body.Close()
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot read response body: %w", err)
 	}
 
 	pasteResponse := CreatePasteResponse{}
 	err = json.Unmarshal(resBody, &pasteResponse)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot unmarshal response: %w", err)
 	}
 
-	pasteResponse.URL = fmt.Sprintf("%s%s#%s", c.URL.String(), pasteResponse.URL, base58.Encode(masterKey))
+	pasteId, err := url.Parse(pasteResponse.URL)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse paste url: %w", err)
+	}
+
+	var uri url.URL
+	uri.Scheme = c.URL.Scheme
+	uri.Host = c.URL.Host
+	uri.RawQuery = pasteId.RawQuery
+	uri.Fragment = base58.Encode(masterKey)
+
+	pasteResponse.URL = uri.String()
 
 	return &pasteResponse, nil
 }
