@@ -1,6 +1,11 @@
 # Introduction
 This repository contains a privatebin command line interface.
 
+# Install
+You can install the command line interface with:
+
+	go get -u github.com/gearnode/privatebin
+
 # Build
 You can build the command line interface with:
 
