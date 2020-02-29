@@ -101,10 +101,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 func main() {
 	cfgPath := flag.String("cfg-file", "", "the path of the configuration file")
 	binName := flag.String("bin", "", "the privatebin name to use")
-	expire := flag.String("expire", "", "")
-	openDiscussion := flag.Bool("open-discussion", false, "")
-	burnAfterReading := flag.Bool("burn-after-reading", false, "")
-	help := flag.Bool("help", false, "Shows this help message")
+	expire := flag.String("expire", "", "the time to live of the paste")
+	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
+	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
+	help := flag.Bool("help", false, "shows this help message")
 
 	flag.Parse()
 
