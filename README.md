@@ -10,6 +10,11 @@ day to day workflow.
 You can install the command line interface with:
 
 	go get -u github.com/gearnode/privatebin
+	
+# Usage
+You can create paste from file with:
+
+	cat resume.txt | privatebin -bin demo
 
 # Build
 You can build the command line interface with:
