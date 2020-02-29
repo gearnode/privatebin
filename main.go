@@ -24,8 +24,8 @@ type BinCfg struct {
 	Host             string  `json:"host"`
 	Auth             AuthCfg `json:"auth"`
 	Expire           string  `json:"expire"`
-	OpenDiscussion   bool    `json:"open_discussion"`
-	BurnAfterReading bool    `json:"burn_after_reading"`
+	OpenDiscussion   *bool   `json:"open_discussion"`
+	BurnAfterReading *bool   `json:"burn_after_reading"`
 	Formatter        string  `json:"formatter"`
 }
 
@@ -35,6 +35,13 @@ type Cfg struct {
 	OpenDiscussion   bool     `json:"open_discussion"`
 	BurnAfterReading bool     `json:"burn_after_reading"`
 	Formatter        string   `json:"formatter"`
+}
+
+func DefaultCfg() *Cfg {
+	return &Cfg{
+		Expire:    "1day",
+		Formatter: "plaintext",
+	}
 }
 
 func (cfg *Cfg) FindBinCfg(name string) (*BinCfg, error) {
@@ -63,12 +70,32 @@ func loadCfgFile(path string) (*Cfg, error) {
 		return nil, fmt.Errorf("cannot read file: %v", err)
 	}
 
-	var cfg Cfg
-	if err := json.Unmarshal(value, &cfg); err != nil {
+	cfg := DefaultCfg()
+	if err := json.Unmarshal(value, cfg); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal file: %v", err)
 	}
 
-	return &cfg, nil
+	for i, binCfg := range cfg.Bin {
+		if binCfg.Expire == "" {
+			binCfg.Expire = cfg.Expire
+		}
+
+		if binCfg.OpenDiscussion == nil {
+			binCfg.OpenDiscussion = &cfg.OpenDiscussion
+		}
+
+		if binCfg.BurnAfterReading == nil {
+			binCfg.BurnAfterReading = &cfg.BurnAfterReading
+		}
+
+		if binCfg.Formatter == "" {
+			binCfg.Formatter = cfg.Formatter
+		}
+
+		cfg.Bin[i] = binCfg
+	}
+
+	return cfg, nil
 }
 
 func main() {
@@ -119,7 +146,13 @@ func main() {
 		fail("cannot read stdin: %v", err)
 	}
 
-	resp, err := client.CreatePaste(strings.Join(data, "\n"))
+	resp, err := client.CreatePaste(
+		strings.Join(data, "\n"),
+		binCfg.Expire,
+		binCfg.Formatter,
+		*binCfg.OpenDiscussion,
+		*binCfg.BurnAfterReading)
+
 	if err != nil {
 		fail("cannot create the paste: %v", err)
 	}

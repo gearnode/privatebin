@@ -38,6 +38,7 @@ type CreatePasteRequestMeta struct {
 type CreatePasteResponse struct {
 	ID          string `json:"id"`
 	Status      int    `json:"status"`
+	Message     string `json:"message"`
 	URL         string `json:"url"`
 	DeleteToken string `json:"deletetoken"`
 }
@@ -74,7 +75,7 @@ type PasteContent struct {
 	Paste string `json:"paste"`
 }
 
-func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
+func (c *Client) CreatePaste(message, expire, formatter string, openDiscussion, burnAfterReading bool) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate random bytes: %w", err)
@@ -85,7 +86,7 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 		return nil, fmt.Errorf("cannot marshal paste content: %w", err)
 	}
 
-	pasteData, err := encrypt(masterKey, pasteContent)
+	pasteData, err := encrypt(masterKey, pasteContent, formatter, openDiscussion, burnAfterReading)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encrypt data: %w", err)
 	}
@@ -93,7 +94,7 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 	createPasteReq := &CreatePasteRequest{
 		V:     2,
 		AData: pasteData.adata(),
-		Meta:  CreatePasteRequestMeta{Expire: "1week"},
+		Meta:  CreatePasteRequestMeta{Expire: expire},
 		CT:    base64.RawStdEncoding.EncodeToString(pasteData.Data),
 	}
 
@@ -130,6 +131,10 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 		return nil, fmt.Errorf("cannot unmarshal response: %w", err)
 	}
 
+	if pasteResponse.Status != 0 {
+		return nil, fmt.Errorf("status of the paste is not zero: %s", pasteResponse.Message)
+	}
+
 	pasteId, err := url.Parse(pasteResponse.URL)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse paste url: %w", err)
@@ -157,19 +162,24 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 
 type PasteData struct {
 	*PasteSpec
-	Data []byte
+	Data             []byte
+	Formatter        string
+	OpenDiscussion   bool
+	BurnAfterReading bool
 }
 
 func (p *PasteData) adata() []interface{} {
+	var b2i = map[bool]int8{false: 0, true: 1}
+
 	return []interface{}{
 		p.SpecArray(),
-		"plaintext",
-		0,
-		0,
+		p.Formatter,
+		b2i[p.OpenDiscussion],
+		b2i[p.BurnAfterReading],
 	}
 }
 
-func encrypt(masterKey []byte, message []byte) (*PasteData, error) {
+func encrypt(masterKey []byte, message []byte, formatter string, openDiscussion, burnAfterReading bool) (*PasteData, error) {
 	iv, err := generateRandomBytes(12)
 	if err != nil {
 		return nil, err
@@ -181,6 +191,9 @@ func encrypt(masterKey []byte, message []byte) (*PasteData, error) {
 	}
 
 	paste := &PasteData{
+		Formatter:        formatter,
+		OpenDiscussion:   openDiscussion,
+		BurnAfterReading: burnAfterReading,
 		PasteSpec: &PasteSpec{
 			IV:          base64.RawStdEncoding.EncodeToString(iv),
 			Salt:        base64.RawStdEncoding.EncodeToString(salt),
