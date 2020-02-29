@@ -99,7 +99,7 @@ func loadCfgFile(path string) (*Cfg, error) {
 }
 
 func main() {
-	cfgPath := flag.String("cfg-file", "", "the path of the configuration file")
+	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/privatebin.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
 	expire := flag.String("expire", "", "the time to live of the paste")
 	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
