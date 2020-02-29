@@ -95,14 +95,22 @@ func main() {
 		fail("cannot load configuration: %v", err)
 	}
 
-	_, err = cfg.FindBinCfg(*binName)
+	binCfg, err := cfg.FindBinCfg(*binName)
 	if err != nil {
 		fail("%v", err)
 	}
 
-	var uri url.URL
+	uri, err := url.Parse(binCfg.Host)
+	if err != nil {
+		fail("cannot parse %q bin host: %v", binCfg.Name, binCfg.Host)
+	}
 
-	client, _ := privatebin.NewClient(uri.String())
-	resp, _ := client.CreatePaste("test")
+	client := privatebin.NewClient(uri, binCfg.Auth.Username, binCfg.Auth.Password)
+
+	resp, err := client.CreatePaste("test")
+	if err != nil {
+		fail("%v\n", err)
+	}
+
 	fmt.Printf("%s\n", resp.URL)
 }

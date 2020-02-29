@@ -66,12 +66,8 @@ func (ps *PasteSpec) SpecArray() []interface{} {
 	}
 }
 
-func NewClient(host string) (*Client, error) {
-	url, err := url.Parse(host)
-	if err != nil {
-		return nil, err
-	}
-	return &Client{URL: *url}, nil
+func NewClient(uri *url.URL, username, password string) *Client {
+	return &Client{URL: *uri, Username: username, Password: password}
 }
 
 type PasteContent struct {
@@ -130,7 +126,7 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 		return nil, err
 	}
 
-	pasteResponse.URL = fmt.Sprintf("%s%s#%s\n", "https://privatebin.net", pasteResponse.URL, base58.Encode(masterKey))
+	pasteResponse.URL = fmt.Sprintf("%s%s#%s\n", c.URL.String(), pasteResponse.URL, base58.Encode(masterKey))
 
 	return &pasteResponse, nil
 }
