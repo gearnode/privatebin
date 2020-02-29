@@ -1,6 +1,11 @@
 # Introduction
 This repository contains a privatebin command line interface.
 
+# Abstract
+In my current company we use privatebin to share source codes,
+secrets, etc. I have wrote this command line interface to simplify my
+day to day workflow.
+
 # Install
 You can install the command line interface with:
 
