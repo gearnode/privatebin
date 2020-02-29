@@ -126,7 +126,7 @@ func (c *Client) CreatePaste(message string) (*CreatePasteResponse, error) {
 		return nil, err
 	}
 
-	pasteResponse.URL = fmt.Sprintf("%s%s#%s\n", c.URL.String(), pasteResponse.URL, base58.Encode(masterKey))
+	pasteResponse.URL = fmt.Sprintf("%s%s#%s", c.URL.String(), pasteResponse.URL, base58.Encode(masterKey))
 
 	return &pasteResponse, nil
 }

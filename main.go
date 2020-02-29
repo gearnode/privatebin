@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gearnode/privatebin-cli/privatebin"
 )
@@ -107,9 +109,19 @@ func main() {
 
 	client := privatebin.NewClient(uri, binCfg.Auth.Username, binCfg.Auth.Password)
 
-	resp, err := client.CreatePaste("test")
+	var data []string
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		data = append(data, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fail("cannot read stdin: %v", err)
+	}
+
+	resp, err := client.CreatePaste(strings.Join(data, "\n"))
 	if err != nil {
-		fail("%v\n", err)
+		fail("cannot create the paste: %v", err)
 	}
 
 	fmt.Printf("%s\n", resp.URL)
