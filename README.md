@@ -3,7 +3,7 @@ This repository contains a CLI for privatebin server.
 
 # Abstract
 I am a big privatebin user, and I never found a clean CLI to deal with
-it. It why I decided to built this project to simplify my day to day
+it. It why I decided to build this project to simplify my day-to-day
 workflow.
 
 # Install
