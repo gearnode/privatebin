@@ -84,25 +84,36 @@ func (ps *PasteSpec) SpecArray() []interface{} {
 }
 
 func NewClient(uri *url.URL, username, password string) *Client {
-	return &Client{URL: *uri, Username: username, Password: password}
+	return &Client{
+		URL: *uri,
+		Username: username,
+		Password: password,
+	}
 }
 
 type PasteContent struct {
 	Paste string `json:"paste"`
 }
 
-func (c *Client) CreatePaste(message, expire, formatter string, openDiscussion, burnAfterReading bool) (*CreatePasteResponse, error) {
+func (c *Client) CreatePaste(
+	message, expire, formatter string,
+	openDiscussion, burnAfterReading bool,
+) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate random bytes: %w", err)
+		return nil, fmt.Errorf(
+			"cannot generate random bytes: %w", err)
 	}
 
 	pasteContent, err := json.Marshal(&PasteContent{Paste: message})
 	if err != nil {
-		return nil, fmt.Errorf("cannot marshal paste content: %w", err)
+		return nil, fmt.Errorf(
+			"cannot marshal paste content: %w", err)
 	}
 
-	pasteData, err := encrypt(masterKey, pasteContent, formatter, openDiscussion, burnAfterReading)
+	pasteData, err :=
+		encrypt(masterKey, pasteContent, formatter,
+			openDiscussion, burnAfterReading)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encrypt data: %w", err)
 	}
@@ -111,16 +122,22 @@ func (c *Client) CreatePaste(message, expire, formatter string, openDiscussion, 
 		V:     2,
 		AData: pasteData.adata(),
 		Meta:  CreatePasteRequestMeta{Expire: expire},
-		CT:    base64.RawStdEncoding.EncodeToString(pasteData.Data),
+		CT: base64.RawStdEncoding.
+			EncodeToString(pasteData.Data),
 	}
 
 	body, err := json.Marshal(createPasteReq)
 	if err != nil {
-		return nil, fmt.Errorf("cannot marshal paste request: %w", err)
+		return nil, fmt.Errorf(
+			"cannot marshal paste request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.URL.String(), bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req, err := http.NewRequest("POST",
+		c.URL.String(),
+		bytes.NewBuffer(body))
+
+	req.Header.Set("Content-Type",
+		"application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")
 	req.SetBasicAuth(c.Username, c.Password)
@@ -128,27 +145,34 @@ func (c *Client) CreatePaste(message, expire, formatter string, openDiscussion, 
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("cannot execute http request: %w", err)
+		return nil, fmt.Errorf(
+			"cannot execute http request: %w", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("pastebin server responds with %q status code", res.Status)
+		return nil, fmt.Errorf(
+			"pastebin server responds with %q status code",
+			res.Status)
 	}
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read response body: %w", err)
+		return nil, fmt.Errorf(
+			"cannot read response body: %w", err)
 	}
 
 	pasteResponse := CreatePasteResponse{}
 	err = json.Unmarshal(resBody, &pasteResponse)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal response: %w", err)
+		return nil, fmt.Errorf(
+			"cannot unmarshal response: %w", err)
 	}
 
 	if pasteResponse.Status != 0 {
-		return nil, fmt.Errorf("status of the paste is not zero: %s", pasteResponse.Message)
+		return nil, fmt.Errorf(
+			"status of the paste is not zero: %s",
+			pasteResponse.Message)
 	}
 
 	pasteId, err := url.Parse(pasteResponse.URL)
@@ -195,7 +219,12 @@ func (p *PasteData) adata() []interface{} {
 	}
 }
 
-func encrypt(masterKey []byte, message []byte, formatter string, openDiscussion, burnAfterReading bool) (*PasteData, error) {
+func encrypt(
+	masterKey []byte,
+	message []byte,
+	formatter string,
+	openDiscussion, burnAfterReading bool,
+) (*PasteData, error) {
 	iv, err := generateRandomBytes(12)
 	if err != nil {
 		return nil, err
@@ -206,23 +235,26 @@ func encrypt(masterKey []byte, message []byte, formatter string, openDiscussion,
 		return nil, err
 	}
 
+	pasteSpec := &PasteSpec{
+		IV:          base64.RawStdEncoding.EncodeToString(iv),
+		Salt:        base64.RawStdEncoding.EncodeToString(salt),
+		Iterations:  100000,
+		KeySize:     256,
+		TagSize:     128,
+		Algorithm:   "aes",
+		Mode:        "gcm",
+		Compression: "none",
+	}
+
 	paste := &PasteData{
 		Formatter:        formatter,
 		OpenDiscussion:   openDiscussion,
 		BurnAfterReading: burnAfterReading,
-		PasteSpec: &PasteSpec{
-			IV:          base64.RawStdEncoding.EncodeToString(iv),
-			Salt:        base64.RawStdEncoding.EncodeToString(salt),
-			Iterations:  100000,
-			KeySize:     256,
-			TagSize:     128,
-			Algorithm:   "aes",
-			Mode:        "gcm",
-			Compression: "none",
-		},
+		PasteSpec:        pasteSpec,
 	}
 
-	key := pbkdf2.Key(masterKey, salt, paste.Iterations, 32, sha256.New)
+	key := pbkdf2.Key(masterKey,
+		salt, paste.Iterations, 32, sha256.New)
 
 	adata, err := json.Marshal(paste.adata())
 	if err != nil {

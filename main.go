@@ -151,10 +151,13 @@ func main() {
 
 	uri, err := url.Parse(binCfg.Host)
 	if err != nil {
-		fail("cannot parse %q bin host: %v", binCfg.Name, binCfg.Host)
+		fail("cannot parse %q bin host: %v",
+			binCfg.Name, binCfg.Host)
 	}
 
-	client := privatebin.NewClient(uri, binCfg.Auth.Username, binCfg.Auth.Password)
+	client := privatebin.NewClient(uri,
+		binCfg.Auth.Username,
+		binCfg.Auth.Password)
 
 	var data []string
 	scanner := bufio.NewScanner(os.Stdin)
