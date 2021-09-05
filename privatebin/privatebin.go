@@ -85,7 +85,7 @@ func (ps *PasteSpec) SpecArray() []interface{} {
 
 func NewClient(uri *url.URL, username, password string) *Client {
 	return &Client{
-		URL: *uri,
+		URL:      *uri,
 		Username: username,
 		Password: password,
 	}
