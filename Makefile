@@ -15,5 +15,4 @@ man/privatebin.1: doc/privatebin.1.md
 	mkdir -p man
 	pandoc --standalone --to man $> -o $@
 
-
 .PHONY: all man build clean
