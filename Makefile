@@ -1,19 +1,19 @@
-BIN_DIR = ${PWD}/bin
+all: build man
 
-all: build
+build: bin/privatebin
 
-build: FORCE
-	GOBIN=$(BIN_DIR) go install ./...
-
-vet:
-	go vet ./...
-
-test:
-	go test -cover -race ./...
+man: man/privatebin.1
 
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf bin
+	rm -rf man
 
-FORCE:
+bin/privatebin: main.go go.sum go.mod privatebin/privatebin.go
+	go build -o bin/privatebin
 
-.PHONY: all vet test clean
+man/privatebin.1: doc/privatebin.1.md
+	mkdir -p man
+	pandoc --standalone --to man $> -o $@
+
+
+.PHONY: all man build clean
