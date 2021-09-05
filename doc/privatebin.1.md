@@ -12,7 +12,8 @@ section: 1
 **privatebin** \[*OPTIONS*\]
 
 # DESCRIPTION
-TODO
+A minimalist, open source command line interface for **PrivateBin**
+instances.
 
 # OPTIONS
 **-help**
