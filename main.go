@@ -115,7 +115,7 @@ func loadCfgFile(path string) (*Cfg, error) {
 }
 
 func main() {
-	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/privatebin.json\")")
+	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
 	expire := flag.String("expire", "", "the time to live of the paste")
 	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
@@ -136,7 +136,7 @@ func main() {
 			fail("cannot get user home directory: %v", err)
 		}
 
-		*cfgPath = path.Join(homeDir, "privatebin.json")
+		*cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
 	}
 
 	cfg, err := loadCfgFile(*cfgPath)

@@ -8,6 +8,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Changed
 - Makefile is now BSD and GNU compatible.
+- Configuration file is now stored in the `~/.config/privatebin/config.json`.
 
 ## [0.1.0] - 2021-05-19
 - First release.
