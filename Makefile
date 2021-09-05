@@ -1,4 +1,4 @@
-BIN_DIR = $(CURDIR)/bin
+BIN_DIR = ${PWD}/bin
 
 all: build
 
@@ -12,7 +12,7 @@ test:
 	go test -cover -race ./...
 
 clean:
-	$(RM) -r $(BIN_DIR)
+	rm -rf $(BIN_DIR)
 
 FORCE:
 
