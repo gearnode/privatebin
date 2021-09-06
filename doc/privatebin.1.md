@@ -9,7 +9,9 @@ section: 1
 **privatebin** – create privatebin paste with simple shell command
 
 # SYNOPSIS
-**privatebin** \[*OPTIONS*\]
+**privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
+\ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
+\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion]
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
