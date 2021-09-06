@@ -15,7 +15,7 @@ You can install the command line interface with:
 
 ## From source
 
-    git clone https://github.com/gearnode/privatebin
+    git clone https://github.com/gearnode/privatebin.git
     cd privatebin
     make
     make install
