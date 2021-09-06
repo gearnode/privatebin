@@ -6,6 +6,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add privatebin(1) man page.
+- Add privatebin.conf(5) man page.
+
 ### Changed
 - Makefile is now BSD and GNU compatible.
 - Configuration file is now stored in the `~/.config/privatebin/config.json`.
