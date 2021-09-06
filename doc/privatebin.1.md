@@ -11,7 +11,7 @@ section: 1
 # SYNOPSIS
 **privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
 \ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion]
+\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] *STDIN*
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
