@@ -19,6 +19,11 @@ install: build man
 	cp man/privatebin.1 /usr/local/man/man1/privatebin.1
 	cp man/privatebin.conf.5 /usr/local/man/man5/privatebin.conf.5
 
+deinstall:
+	rm -f /usr/local/bin/privatebin
+	rm -f /usr/local/man/man1/privatebin.1
+	rm -f /usr/local/man/man5/privatebin.conf.5
+
 clean:
 	rm -rf bin
 	rm -rf man
