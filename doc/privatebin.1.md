@@ -52,3 +52,6 @@ Create a paste on the default privatebin instance:
 
 # SEE ALSO
 **privatebin.conf**(5)
+
+# AUTHORS
+Bryan Frimin.
