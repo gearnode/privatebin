@@ -70,6 +70,28 @@ Minimal privatebin configuration file:
         ]
     }
 
+A bit more complete configuration file:
+
+    {
+        "bin": [
+            {
+                "name": "example",
+                "host": "bin.example.com",
+                "auth": {
+                    "username": "john.doe",
+                    "password": "s$cr$t"
+                },
+                "formatter": "markdown",
+                "burn_after_reading": false
+            },
+            {
+                "name": "",
+                "host": "https://privatebin.net"
+            },
+        ],
+        "burn_after_reading": true
+    }
+
 # FILES
 *~/.config/privatebin/config.json*
 : Default location of the privatebin configuration. The file has to be

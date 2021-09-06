@@ -71,6 +71,32 @@ Minimal privatebin configuration file:
 }
 \f[R]
 .fi
+.PP
+A bit more complete configuration file:
+.IP
+.nf
+\f[C]
+{
+    \[dq]bin\[dq]: [
+        {
+            \[dq]name\[dq]: \[dq]example\[dq],
+            \[dq]host\[dq]: \[dq]bin.example.com\[dq],
+            \[dq]auth\[dq]: {
+                \[dq]username\[dq]: \[dq]john.doe\[dq],
+                \[dq]password\[dq]: \[dq]s$cr$t\[dq]
+            },
+            \[dq]formatter\[dq]: \[dq]markdown\[dq],
+            \[dq]burn_after_reading\[dq]: false
+        },
+        {
+            \[dq]name\[dq]: \[dq]\[dq],
+            \[dq]host\[dq]: \[dq]https://privatebin.net\[dq]
+        },
+    ],
+    \[dq]burn_after_reading\[dq]: true
+}
+\f[R]
+.fi
 .SH FILES
 .TP
 \f[I]\[ti]/.config/privatebin/config.json\f[R]
