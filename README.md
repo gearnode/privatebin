@@ -13,10 +13,6 @@ You can install the command line interface with:
 
     pkg install privatebin-cli
 
-## With go get (without man page)
-
-	go get -u github.com/gearnode/privatebin
-
 ## From source
 
     git clone https://github.com/gearnode/privatebin
