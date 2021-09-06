@@ -7,6 +7,11 @@ it. It why I decided to build this project to simplify my day-to-day
 workflow.
 
 # Install
+## FreeBSD
+
+    pkg install privatebin-cli
+
+## From source
 You can install the command line interface with:
 
 	go get -u github.com/gearnode/privatebin
