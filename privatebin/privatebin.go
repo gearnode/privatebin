@@ -183,6 +183,7 @@ func (c *Client) CreatePaste(
 	var uri url.URL
 	uri.Scheme = c.URL.Scheme
 	uri.Host = c.URL.Host
+	uri.Path = c.URL.Path
 	uri.RawQuery = pasteId.RawQuery
 	uri.Fragment = base58.Encode(masterKey)
 
