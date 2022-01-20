@@ -19,16 +19,16 @@ You can install the command line interface with:
     cd privatebin
     make
     make install
-	
+
 # Usage
 You can create paste from file with:
 
-	cat resume.txt | privatebin -bin demo
+    cat resume.txt | privatebin -bin demo
 
 # Build
 You can build the command line interface with:
 
-	make build
+    make build
 
 # Documentation
 The [handbook](doc/handbook.md) contains informations about various
@@ -37,7 +37,7 @@ aspects of the command line interface.
 You can also use the standard Go documentation tool to read code
 documentation, for example:
 
-	go doc -all github.com/gearnode/privatebin
+    go doc -all github.com/gearnode/privatebin
 
 
 # Contact
@@ -49,7 +49,7 @@ Please note that I do not currently review or accept any contribution.
 # Licence
 Released under the ISC license.
 
-Copyright (c) 2020-2021 Bryan Frimin <bryan@frimin.fr>.
+Copyright (c) 2020-2022 Bryan Frimin <bryan@frimin.fr>.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
