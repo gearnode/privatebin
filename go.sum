@@ -1,7 +1,5 @@
 github.com/gearnode/base58 v0.0.0-20200201175139-69e2d70f0e30 h1:RPq056iW9QyucBAxibIUIEUaRk8FvT/QwB3YbJPbxpg=
 github.com/gearnode/base58 v0.0.0-20200201175139-69e2d70f0e30/go.mod h1:DVEyvP0OdbwmKHqpF7etLRKaGpAiNh+w66wVI3VzEzo=
-github.com/gearnode/privatebin-cli v0.0.0-20200229162502-b6948a014483 h1:qMkbBsWkXze+6OX3031TCUu8KAQhNM8LtO0fHjUtW/w=
-github.com/gearnode/privatebin-cli v0.0.0-20200229162502-b6948a014483/go.mod h1:f34IYtZLf7eTCpjfGpzteMu5/yMLWXRg4/XxFW+Wyuc=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200117160349-530e935923ad h1:Jh8cai0fqIK+f6nG0UgPW5wFk8wmiMhM3AyciDBdtQg=
 golang.org/x/crypto v0.0.0-20200117160349-530e935923ad/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
