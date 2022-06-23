@@ -7,6 +7,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Add privatebin paste password support. Via the optional `-password`
+  flag.
+
 ## [1.0.1] - 2022-01-20
 ### Fixed
 - Missing URL path on the returned URL.
