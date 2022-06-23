@@ -102,6 +102,7 @@ type PasteContent struct {
 func (c *Client) CreatePaste(
 	message, expire, formatter string,
 	openDiscussion, burnAfterReading bool,
+	password string,
 ) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
@@ -116,7 +117,7 @@ func (c *Client) CreatePaste(
 	}
 
 	pasteData, err :=
-		encrypt(masterKey, pasteContent, formatter,
+		encrypt(masterKey, password, pasteContent, formatter,
 			openDiscussion, burnAfterReading)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encrypt data: %w", err)
@@ -226,6 +227,7 @@ func (p *PasteData) adata() []interface{} {
 
 func encrypt(
 	masterKey []byte,
+	password string,
 	message []byte,
 	formatter string,
 	openDiscussion, burnAfterReading bool,
@@ -258,6 +260,7 @@ func encrypt(
 		PasteSpec:        pasteSpec,
 	}
 
+	masterKey = append(masterKey, []byte(password)...)
 	key := pbkdf2.Key(masterKey,
 		salt, paste.Iterations, 32, sha256.New)
 

@@ -121,6 +121,7 @@ func main() {
 	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
 	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
 	formatter := flag.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
+	password := flag.String("password", "", "the paste password")
 	help := flag.Bool("help", false, "shows this help message")
 
 	flag.Parse()
@@ -190,7 +191,8 @@ func main() {
 		binCfg.Expire,
 		binCfg.Formatter,
 		*binCfg.OpenDiscussion,
-		*binCfg.BurnAfterReading)
+		*binCfg.BurnAfterReading,
+		*password)
 
 	if err != nil {
 		fail("cannot create the paste: %v", err)
