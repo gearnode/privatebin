@@ -34,6 +34,10 @@ import (
 	"time"
 )
 
+const (
+	PrivateBinAPIVersion = 2
+)
+
 type Client struct {
 	URL      url.URL
 	Username string
@@ -119,7 +123,7 @@ func (c *Client) CreatePaste(
 	}
 
 	createPasteReq := &CreatePasteRequest{
-		V:     2,
+		V:     PrivateBinAPIVersion,
 		AData: pasteData.adata(),
 		Meta:  CreatePasteRequestMeta{Expire: expire},
 		CT: base64.RawStdEncoding.
