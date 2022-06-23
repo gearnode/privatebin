@@ -115,12 +115,19 @@ func loadCfgFile(path string) (*Cfg, error) {
 }
 
 func main() {
-	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
+	cfgPath := flag.String("cfg-file", "",
+		"the path of the configuration file (default "+
+			"\"~/.config/privatebin/config.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
-	expire := flag.String("expire", "", "the time to live of the paste")
-	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
-	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
-	formatter := flag.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
+	expire := flag.String("expire", "",
+		"the time to live of the paste")
+	openDiscussion := flag.Bool("open-discussion", false,
+		"enable discussion on the paste")
+	burnAfterReading := flag.Bool("burn-after-reading", false,
+		"delete the paste after reading")
+	formatter := flag.String("formatter", "",
+		"the text formatter to use, can be plaintext, markdown"+
+			" or syntaxhighlighting")
 	password := flag.String("password", "", "the paste password")
 	help := flag.Bool("help", false, "shows this help message")
 
@@ -137,7 +144,8 @@ func main() {
 			fail("cannot get user home directory: %v", err)
 		}
 
-		*cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+		*cfgPath = path.Join(homeDir, ".config", "privatebin",
+			"config.json")
 	}
 
 	cfg, err := loadCfgFile(*cfgPath)
