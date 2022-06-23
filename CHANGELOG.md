@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2022-06-23
+
+### Added
+
 - Add privatebin paste password support. Via the optional `-password`
   flag.
 
@@ -27,7 +31,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Makefile is now BSD and GNU compatible.
-- Configuration file is now stored in the `~/.config/privatebin/config.json`.
+- Configuration file is now stored in the
+  `~/.config/privatebin/config.json`.
 
 ## [0.1.0] - 2021-05-19
 
