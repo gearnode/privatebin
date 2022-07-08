@@ -1,7 +1,7 @@
 BIN=bin/privatebin
 
-SRC = main.go \
-      privatebin/privatebin.go \
+SRC = cmd/privatebin/main.go \
+      privatebin.go \
       go.sum \
       go.mod
 
@@ -29,6 +29,6 @@ clean:
 	rm -rf man
 
 $(BIN): $(SRC)
-	go build -o bin/privatebin
+	go build -o bin/privatebin cmd/privatebin/main.go
 
 .PHONY: all man build clean

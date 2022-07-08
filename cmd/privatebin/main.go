@@ -27,7 +27,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gearnode/privatebin/privatebin"
+	"github.com/gearnode/privatebin"
 )
 
 type AuthCfg struct {
