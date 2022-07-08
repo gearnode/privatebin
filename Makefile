@@ -31,4 +31,4 @@ clean:
 $(BIN): $(SRC)
 	go build -o bin/privatebin cmd/privatebin/main.go
 
-.PHONY: all man build clean
+.PHONY: all man build clean install deinstall
