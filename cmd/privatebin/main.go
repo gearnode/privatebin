@@ -43,6 +43,7 @@ type BinCfg struct {
 	OpenDiscussion   *bool   `json:"open_discussion"`
 	BurnAfterReading *bool   `json:"burn_after_reading"`
 	Formatter        string  `json:"formatter"`
+	UserAgent        string   `json:"user_agent"`
 }
 
 type Cfg struct {
@@ -51,12 +52,14 @@ type Cfg struct {
 	OpenDiscussion   bool     `json:"open_discussion"`
 	BurnAfterReading bool     `json:"burn_after_reading"`
 	Formatter        string   `json:"formatter"`
+	UserAgent        string   `json:"user_agent"`
 }
 
 func DefaultCfg() *Cfg {
 	return &Cfg{
 		Expire:    "1day",
 		Formatter: "plaintext",
+		UserAgent: "Privatebin cli +https://github.com/gearnode/privatebin",
 	}
 }
 
@@ -106,6 +109,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 
 		if binCfg.Formatter == "" {
 			binCfg.Formatter = cfg.Formatter
+		}
+
+		if binCfg.UserAgent == "" {
+			binCfg.UserAgent = cfg.UserAgent
 		}
 
 		cfg.Bin[i] = binCfg
@@ -198,6 +205,7 @@ func main() {
 		strings.Join(data, "\n"),
 		binCfg.Expire,
 		binCfg.Formatter,
+		binCfg.UserAgent,
 		*binCfg.OpenDiscussion,
 		*binCfg.BurnAfterReading,
 		*password)

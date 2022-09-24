@@ -100,7 +100,7 @@ type PasteContent struct {
 }
 
 func (c *Client) CreatePaste(
-	message, expire, formatter string,
+	message, expire, formatter string, useragent string,
 	openDiscussion, burnAfterReading bool,
 	password string,
 ) (*CreatePasteResponse, error) {
@@ -141,6 +141,7 @@ func (c *Client) CreatePaste(
 		c.URL.String(),
 		bytes.NewBuffer(body))
 
+	req.Header.Set("User-Agent", useragent)
 	req.Header.Set("Content-Type",
 		"application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
