@@ -23,6 +23,9 @@ instance configured in the **config.json**.
 **formatter** *string* (default: "plaintext")
 : The default formatter for a paste.
 
+**user_agent** *string* (default: "privatebin cli +https://github.com/gearnode/privatebin")
+: The default user agent for a paste.
+
 **expire** *string* (default: "1day")
 : The default time to live for a paste.
 
@@ -50,6 +53,9 @@ instance configured in the **config.json**.
 
 **formatter** *string*
 : The formatter for the paste.
+
+**user_agent** *string*
+: The user agent for the paste.
 
 ## The auth object format:
 **username** *string*
