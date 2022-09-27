@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	"github.com/gearnode/privatebin"
+	pv "github.com/gearnode/privatebin/internal/version"
 )
 
 type AuthCfg struct {
@@ -130,12 +131,18 @@ func main() {
 			" or syntaxhighlighting")
 	password := flag.String("password", "", "the paste password")
 	help := flag.Bool("help", false, "shows this help message")
+	version := flag.Bool("version", false, "prints the privatebin cli version")
 
 	flag.Parse()
 
 	if *help {
 		flag.PrintDefaults()
 		os.Exit(0)
+	}
+
+	if *version {
+		fmt.Printf("privatebin cli version %s\n", pv.Version)
+		os.Exit(1)
 	}
 
 	if *cfgPath == "" {
