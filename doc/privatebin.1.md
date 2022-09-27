@@ -1,7 +1,7 @@
 ---
 title: PRIVATEBIN
 header: Privatebin Manual
-footer: 1.0.1
+footer: 1.2
 date: Jan 20, 2022
 section: 1
 ---
@@ -11,7 +11,7 @@ section: 1
 # SYNOPSIS
 **privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
 \ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] *STDIN*
+\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] [-version] *STDIN*
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
@@ -43,6 +43,9 @@ instances.
 
 **-password**
 : Add password on the paste.
+
+**-version**
+: Prints the privatebin cli version.
 
 # EXIT STATUS
 The **privatebin** utility exits 0 on success, and >0 if an error

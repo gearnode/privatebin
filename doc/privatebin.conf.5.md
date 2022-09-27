@@ -1,7 +1,7 @@
 ---
 title: PRIVATEBIN.CONF
 header: Privatebin Manual
-footer: 1.0.1
+footer: 1.2
 date: Jan 20, 2022
 section: 1
 ---
