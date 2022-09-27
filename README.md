@@ -39,7 +39,6 @@ documentation, for example:
 
     go doc -all github.com/gearnode/privatebin
 
-
 # Contact
 If you find a bug or have any question, feel free to open a Github issue
 or to contact me [by email](mailto:bryan@frimin.fr).
