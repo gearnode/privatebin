@@ -2,6 +2,7 @@ MKDIR=	mkdir -p
 GO=	go
 PANDOC=	pandoc
 CP=	cp
+RM=	rm
 INSTALL=	install
 
 DATETIME=	"Sep 28, 2022"
