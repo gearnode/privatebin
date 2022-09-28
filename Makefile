@@ -4,6 +4,8 @@ PANDOC=	pandoc
 CP=	cp
 INSTALL=	install
 
+DATETIME=	"Sep 28, 2022"
+VERSION=	1.2.0
 LDFLAGS=	-ldflags "-X 'github.com/gearnode/privatebin/internal/version.Version=1.2'"
 
 BIN=bin/privatebin
@@ -19,8 +21,20 @@ build: $(BIN)
 
 man:
 	@$(MKDIR) man
-	$(PANDOC) --standalone --to man doc/privatebin.1.md -o man/privatebin.1
-	$(PANDOC) --standalone --to man doc/privatebin.conf.5.md -o man/privatebin.conf.5
+	$(PANDOC) \
+		--standalone \
+		--to man \
+		-M footer=$(VERSION) \
+		-M date=$(DATETIME) \
+		doc/privatebin.1.md \
+		-o man/privatebin.1
+	$(PANDOC) \
+		--standalone \
+		--to man \
+		-M footer=$(VERSION) \
+		-M date=$(DATETIME) \
+		doc/privatebin.conf.5.md \
+		-o man/privatebin.conf.5
 
 install: build man
 	$(INSTALL) -m 555 bin/privatebin /usr/local/bin/privatebin
