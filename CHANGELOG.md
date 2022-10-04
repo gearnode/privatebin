@@ -12,6 +12,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Add privatebin version through the `-version` flag.
 
+### Fixed
+
+- Add `User-Agent` request header to mitigate WAF (Cloudflare, etc.)
+  blocking request from the CLI.
+
 ## [1.1.1] - 2022-07-20
 Nothing.
 

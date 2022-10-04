@@ -24,14 +24,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/gearnode/base58"
-	"golang.org/x/crypto/pbkdf2"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/gearnode/base58"
+	pv "github.com/gearnode/privatebin/internal/version"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 const (
@@ -141,6 +143,8 @@ func (c *Client) CreatePaste(
 		c.URL.String(),
 		bytes.NewBuffer(body))
 
+	req.Header.Set("User-Agent",
+		"privatebin-cli/"+pv.Version+" (source; https://github.com/gearnode/privatebin)")
 	req.Header.Set("Content-Type",
 		"application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
