@@ -142,6 +142,9 @@ func (c *Client) CreatePaste(
 	req, err := http.NewRequest("POST",
 		c.URL.String(),
 		bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("cannot create request: %w", err)
+	}
 
 	req.Header.Set("User-Agent",
 		"privatebin-cli/"+pv.Version+" (source; https://github.com/gearnode/privatebin)")
