@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.0] - 2022-09-04
+
 ### Added
 
 - Add privatebin version through the `-version` flag.
