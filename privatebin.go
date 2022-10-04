@@ -143,7 +143,7 @@ func (c *Client) CreatePaste(
 		c.URL.String(),
 		bytes.NewBuffer(body))
 	if err != nil {
-		return nil, fmt.Errorf("cannot create request: %w", err)
+		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
 
 	req.Header.Set("User-Agent",
