@@ -1,6 +1,6 @@
 module github.com/gearnode/privatebin
 
-go 1.13
+go 1.19
 
 require (
 	github.com/gearnode/base58 v0.0.0-20200201175139-69e2d70f0e30
