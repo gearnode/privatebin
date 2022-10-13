@@ -11,6 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Upgrade to Go 1.19.
+- Use `gearno.de` import url.
 
 ### Fixed
 

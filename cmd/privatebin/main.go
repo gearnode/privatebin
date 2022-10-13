@@ -27,8 +27,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gearnode/privatebin"
-	pv "github.com/gearnode/privatebin/internal/version"
+	"gearno.de/privatebin"
+	pv "gearno.de/privatebin/internal/version"
 )
 
 type AuthCfg struct {

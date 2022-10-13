@@ -14,7 +14,7 @@
 // TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-package privatebin
+package privatebin // import "gearno.de/privatebin"
 
 import (
 	"bytes"
@@ -31,8 +31,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gearnode/base58"
-	pv "github.com/gearnode/privatebin/internal/version"
+	"gearno.de/base58"
+	pv "gearno.de/privatebin/internal/version"
 	"golang.org/x/crypto/pbkdf2"
 )
 
