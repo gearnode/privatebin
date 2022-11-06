@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.3.0] - 2022-11-06
+
 ### Added
 
 - Add `-filename` flag to read file instead of stdin.
