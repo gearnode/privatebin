@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `-filename` flag to read file instead of stdin.
+- Add `-attachment` flag to update data as an attchment.
+
 ### Changed
 
 - Upgrade to Go 1.19.
