@@ -17,7 +17,6 @@
 package main // import "gearno.de/cmd/privatebin"
 
 import (
-	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -25,7 +24,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strings"
 
 	"gearno.de/privatebin"
 	pv "gearno.de/privatebin/internal/version"
@@ -175,16 +173,6 @@ func main() {
 		binCfg.Auth.Username,
 		binCfg.Auth.Password)
 
-	var data []string
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		data = append(data, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		fail("cannot read stdin: %v", err)
-	}
-
 	if expire != nil {
 		binCfg.Expire = *expire
 	}
@@ -201,8 +189,13 @@ func main() {
 		binCfg.Formatter = *formatter
 	}
 
+	data, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		fail("cannot read stdin: %v", err)
+	}
+
 	resp, err := client.CreatePaste(
-		strings.Join(data, "\n"),
+		string(data),
 		binCfg.Expire,
 		binCfg.Formatter,
 		*binCfg.OpenDiscussion,
