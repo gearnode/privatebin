@@ -7,7 +7,7 @@ INSTALL=	install
 
 DATETIME=	"Sep 28, 2022"
 VERSION=	1.2.0
-LDFLAGS=	-ldflags "-X 'github.com/gearnode/privatebin/internal/version.Version=1.2'"
+LDFLAGS=	-ldflags "-X 'gearno.de/privatebin/internal/version.Version=$(VERSION)'"
 
 BIN=bin/privatebin
 
