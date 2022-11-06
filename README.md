@@ -15,12 +15,15 @@ You can install the command line interface with:
 
 ## Arch Linux
 
-[![privatebin-cli on AUR](https://img.shields.io/aur/version/privatebin-cli?label=privatebin-cli)](https://aur.archlinux.org/packages/privatebin-cli/)
+[![privatebin-cli on
+AUR](https://img.shields.io/aur/version/privatebin-cli?label=privatebin-cli)](https://aur.archlinux.org/packages/privatebin-cli/)
 
-Privatebin-cli is available on the [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository):
+Privatebin-cli is available on the
+[AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository):
 - [privatebin-cli](https://aur.archlinux.org/packages/privatebin-cli/) (release package)
 
-You can install it using your [AUR helper](https://wiki.archlinux.org/index.php/AUR_helpers) of choice.
+You can install it using your [AUR
+helper](https://wiki.archlinux.org/index.php/AUR_helpers) of choice.
 
 Example:
 ```console
