@@ -11,7 +11,8 @@ section: 1
 # SYNOPSIS
 **privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
 \ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] [-version] *STDIN*
+\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] \
+\ \ \ \ \ \ \ \ \ \ \ \[-attachment] [-filename=\<filename\>] [-version] *STDIN*
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
@@ -44,11 +45,17 @@ instances.
 **-password**
 : Add password on the paste.
 
+**-attachment**
+: Create the paste as an attachment.
+
+**-filename**
+: Open and read filename instead of `stdin`.
+
 **-version**
 : Prints the privatebin cli version.
 
 # EXIT STATUS
-The **privatebin** utility exits 0 on success, and >0 if an error
+The **privatebin** utility exits 0 on success, and >0 if an error
 occurs.
 
 # EXAMPLES
