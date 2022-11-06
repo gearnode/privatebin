@@ -14,6 +14,6 @@
 // TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-package version
+package version // import "gearno.de/privatebin/internal/version"
 
 var Version = "dev"
