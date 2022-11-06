@@ -26,8 +26,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"mime"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -98,11 +100,20 @@ func NewClient(uri *url.URL, username, password string) *Client {
 }
 
 type PasteContent struct {
-	Paste string `json:"paste"`
+	Paste          string `json:"paste"`
+	Attachment     string `json:"attachment,omitempty"`
+	AttachmentName string `json:"attachment_name,omitempty"`
+}
+
+type PasteMessage struct {
+	Attachment bool
+	Filename   string
+	Data       []byte
 }
 
 func (c *Client) CreatePaste(
-	message, expire, formatter string,
+	message *PasteMessage,
+	expire, formatter string,
 	openDiscussion, burnAfterReading bool,
 	password string,
 ) (*CreatePasteResponse, error) {
@@ -112,14 +123,36 @@ func (c *Client) CreatePaste(
 			"cannot generate random bytes: %w", err)
 	}
 
-	pasteContent, err := json.Marshal(&PasteContent{Paste: message})
+	pasteContent := PasteContent{}
+	if message.Attachment {
+		pasteContent.AttachmentName = message.Filename
+		ext := filepath.Ext(message.Filename)
+		mimeType := mime.TypeByExtension(ext)
+		if mimeType == "" {
+			mimeType = "application/octet-stream"
+		}
+
+		pasteContent.AttachmentName = message.Filename
+		if pasteContent.AttachmentName == "" {
+			pasteContent.AttachmentName = "stdin"
+		}
+		pasteContent.Attachment = fmt.Sprintf(
+			"data:%s;base64,%s",
+			mimeType,
+			base64.StdEncoding.EncodeToString(message.Data),
+		)
+	} else {
+		pasteContent.Paste = string(message.Data)
+	}
+
+	pasteContentStr, err := json.Marshal(&pasteContent)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"cannot marshal paste content: %w", err)
 	}
 
 	pasteData, err :=
-		encrypt(masterKey, password, pasteContent, formatter,
+		encrypt(masterKey, password, pasteContentStr, formatter,
 			openDiscussion, burnAfterReading)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encrypt data: %w", err)

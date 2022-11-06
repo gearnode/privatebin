@@ -24,6 +24,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 
 	"gearno.de/privatebin"
 	pv "gearno.de/privatebin/internal/version"
@@ -128,6 +129,9 @@ func main() {
 		"the text formatter to use, can be plaintext, markdown"+
 			" or syntaxhighlighting")
 	password := flag.String("password", "", "the paste password")
+	filename := flag.String("filename", "", "read filepath instead of stdin")
+	attachment := flag.Bool("attachment", false, "create the paste"+
+		" as an attachment")
 	help := flag.Bool("help", false, "shows this help message")
 	version := flag.Bool("version", false, "prints the privatebin cli version")
 
@@ -189,13 +193,30 @@ func main() {
 		binCfg.Formatter = *formatter
 	}
 
-	data, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		fail("cannot read stdin: %v", err)
+	message := privatebin.PasteMessage{Attachment: *attachment}
+	if *filename != "" {
+		file, err := os.Open(*filename)
+		if err != nil {
+			fail("cannot open %q file: %v", *filename, err)
+		}
+
+		data, err := ioutil.ReadAll(file)
+		if err != nil {
+			fail("cannot read %q file: %v", *filename, err)
+		}
+
+		message.Filename = filepath.Base(*filename)
+		message.Data = data
+	} else {
+		data, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			fail("cannot read stdin: %v", err)
+		}
+		message.Data = data
 	}
 
 	resp, err := client.CreatePaste(
-		string(data),
+		&message,
 		binCfg.Expire,
 		binCfg.Formatter,
 		*binCfg.OpenDiscussion,
