@@ -18,13 +18,14 @@ package privatebin // import "gearno.de/privatebin"
 
 import (
 	"bytes"
+	"compress/flate"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"mime"
 	"net/http"
@@ -114,7 +115,7 @@ type PasteMessage struct {
 func (c *Client) CreatePaste(
 	message *PasteMessage,
 	expire, formatter string,
-	openDiscussion, burnAfterReading bool,
+	openDiscussion, burnAfterReading, gzip bool,
 	password string,
 ) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
@@ -153,7 +154,7 @@ func (c *Client) CreatePaste(
 
 	pasteData, err :=
 		encrypt(masterKey, password, pasteContentStr, formatter,
-			openDiscussion, burnAfterReading)
+			openDiscussion, burnAfterReading, gzip)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encrypt data: %w", err)
 	}
@@ -179,10 +180,8 @@ func (c *Client) CreatePaste(
 		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
 
-	req.Header.Set("User-Agent",
-		"privatebin-cli/"+pv.Version+" (source; https://github.com/gearnode/privatebin)")
-	req.Header.Set("Content-Type",
-		"application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "privatebin-cli/"+pv.Version+" (source; https://github.com/gearnode/privatebin)")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")
 	req.SetBasicAuth(c.Username, c.Password)
@@ -201,7 +200,7 @@ func (c *Client) CreatePaste(
 			res.Status)
 	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"cannot read response body: %w", err)
@@ -270,7 +269,7 @@ func encrypt(
 	password string,
 	message []byte,
 	formatter string,
-	openDiscussion, burnAfterReading bool,
+	openDiscussion, burnAfterReading, gzipCompress bool,
 ) (*PasteData, error) {
 	iv, err := generateRandomBytes(12)
 	if err != nil {
@@ -291,6 +290,24 @@ func encrypt(
 		Algorithm:   "aes",
 		Mode:        "gcm",
 		Compression: "none",
+	}
+
+	if gzipCompress {
+		pasteSpec.Compression = "zlib"
+	}
+
+	var buf bytes.Buffer
+	fw, err := flate.NewWriter(&buf, flate.BestCompression)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := fw.Write(message); err != nil {
+		return nil, err
+	}
+
+	if err := fw.Close(); err != nil {
+		return nil, err
 	}
 
 	paste := &PasteData{
@@ -319,7 +336,7 @@ func encrypt(
 		return nil, err
 	}
 
-	data := gcm.Seal(nil, iv, message, adata)
+	data := gcm.Seal(nil, iv, buf.Bytes(), adata)
 
 	paste.Data = data
 

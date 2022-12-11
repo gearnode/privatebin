@@ -42,6 +42,7 @@ type BinCfg struct {
 	Expire           string  `json:"expire"`
 	OpenDiscussion   *bool   `json:"open_discussion"`
 	BurnAfterReading *bool   `json:"burn_after_reading"`
+	GZip             *bool   `json:"gzip"`
 	Formatter        string  `json:"formatter"`
 }
 
@@ -50,6 +51,7 @@ type Cfg struct {
 	Expire           string   `json:"expire"`
 	OpenDiscussion   bool     `json:"open_discussion"`
 	BurnAfterReading bool     `json:"burn_after_reading"`
+	GZip             bool     `json:"gzip"`
 	Formatter        string   `json:"formatter"`
 }
 
@@ -57,6 +59,7 @@ func DefaultCfg() *Cfg {
 	return &Cfg{
 		Expire:    "1day",
 		Formatter: "plaintext",
+		GZip:      true,
 	}
 }
 
@@ -108,6 +111,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 			binCfg.Formatter = cfg.Formatter
 		}
 
+		if binCfg.GZip == nil {
+			binCfg.GZip = &cfg.GZip
+		}
+
 		cfg.Bin[i] = binCfg
 	}
 
@@ -115,23 +122,16 @@ func loadCfgFile(path string) (*Cfg, error) {
 }
 
 func main() {
-	cfgPath := flag.String("cfg-file", "",
-		"the path of the configuration file (default "+
-			"\"~/.config/privatebin/config.json\")")
+	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
-	expire := flag.String("expire", "",
-		"the time to live of the paste")
-	openDiscussion := flag.Bool("open-discussion", false,
-		"enable discussion on the paste")
-	burnAfterReading := flag.Bool("burn-after-reading", false,
-		"delete the paste after reading")
-	formatter := flag.String("formatter", "",
-		"the text formatter to use, can be plaintext, markdown"+
-			" or syntaxhighlighting")
+	expire := flag.String("expire", "", "the time to live of the paste")
+	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
+	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
+	gzip := flag.Bool("gzip", true, "gzip the paste data")
+	formatter := flag.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
 	password := flag.String("password", "", "the paste password")
 	filename := flag.String("filename", "", "read filepath instead of stdin")
-	attachment := flag.Bool("attachment", false, "create the paste"+
-		" as an attachment")
+	attachment := flag.Bool("attachment", false, "create the paste as an attachment")
 	help := flag.Bool("help", false, "shows this help message")
 	version := flag.Bool("version", false, "prints the privatebin cli version")
 
@@ -189,6 +189,10 @@ func main() {
 		binCfg.BurnAfterReading = burnAfterReading
 	}
 
+	if gzip != nil {
+		binCfg.GZip = gzip
+	}
+
 	if *formatter != "" {
 		binCfg.Formatter = *formatter
 	}
@@ -221,6 +225,7 @@ func main() {
 		binCfg.Formatter,
 		*binCfg.OpenDiscussion,
 		*binCfg.BurnAfterReading,
+		*binCfg.GZip,
 		*password)
 
 	if err != nil {

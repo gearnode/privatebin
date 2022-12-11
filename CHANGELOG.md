@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `-gzip` flag to compress data with gzip.
+
 ## [1.3.0] - 2022-11-06
 
 ### Added
