@@ -294,20 +294,22 @@ func encrypt(
 
 	if gzipCompress {
 		pasteSpec.Compression = "zlib"
-	}
 
-	var buf bytes.Buffer
-	fw, err := flate.NewWriter(&buf, flate.BestCompression)
-	if err != nil {
-		return nil, err
-	}
+		var buf bytes.Buffer
+		fw, err := flate.NewWriter(&buf, flate.BestCompression)
+		if err != nil {
+			return nil, err
+		}
 
-	if _, err := fw.Write(message); err != nil {
-		return nil, err
-	}
+		if _, err := fw.Write(message); err != nil {
+			return nil, err
+		}
 
-	if err := fw.Close(); err != nil {
-		return nil, err
+		if err := fw.Close(); err != nil {
+			return nil, err
+		}
+
+		message = buf.Bytes()
 	}
 
 	paste := &PasteData{
@@ -336,7 +338,7 @@ func encrypt(
 		return nil, err
 	}
 
-	data := gcm.Seal(nil, iv, buf.Bytes(), adata)
+	data := gcm.Seal(nil, iv, message, adata)
 
 	paste.Data = data
 
