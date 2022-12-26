@@ -11,7 +11,7 @@ section: 1
 # SYNOPSIS
 **privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
 \ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] \
+\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] [-gzip]\
 \ \ \ \ \ \ \ \ \ \ \ \[-attachment] [-filename=\<filename\>] [-version] *STDIN*
 
 # DESCRIPTION
@@ -50,6 +50,9 @@ instances.
 
 **-filename**
 : Open and read filename instead of `stdin`.
+
+**-gzip**
+: GZip the paste data.
 
 **-version**
 : Prints the privatebin cli version.

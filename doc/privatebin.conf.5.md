@@ -26,6 +26,9 @@ instance configured in the **config.json**.
 **expire** *string* (default: "1day")
 : The default time to live for a paste.
 
+**gzip** *bool* (default: false)
+: GZip the paste data
+
 **bin** *array\<bin\>*
 : The list of bin instances.
 
@@ -50,6 +53,9 @@ instance configured in the **config.json**.
 
 **formatter** *string*
 : The formatter for the paste.
+
+**gzip** *bool*
+: GZip the paste data
 
 ## The auth object format:
 **username** *string*
