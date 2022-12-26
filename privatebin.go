@@ -284,7 +284,7 @@ func encrypt(
 	pasteSpec := &PasteSpec{
 		IV:          base64.RawStdEncoding.EncodeToString(iv),
 		Salt:        base64.RawStdEncoding.EncodeToString(salt),
-		Iterations:  100000,
+		Iterations:  310_000,
 		KeySize:     256,
 		TagSize:     128,
 		Algorithm:   "aes",

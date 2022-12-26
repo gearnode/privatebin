@@ -12,6 +12,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Add `-gzip` flag to compress data with gzip.
 
+### Changed
+
+- According to OWAP recommendation, increase the number of PBKDF2
+  iterations.
+
 ## [1.3.0] - 2022-11-06
 
 ### Added
