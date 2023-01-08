@@ -5,8 +5,8 @@ CP=	cp
 RM=	rm
 INSTALL=	install
 
-DATETIME=	"Nov 06, 2022"
-VERSION=	1.3.0
+DATETIME=	"Jan 08, 2023"
+VERSION=	1.4.0
 LDFLAGS=	-ldflags "-X 'gearno.de/privatebin/internal/version.Version=$(VERSION)'"
 
 BIN=bin/privatebin
