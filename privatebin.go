@@ -115,7 +115,7 @@ type PasteMessage struct {
 func (c *Client) CreatePaste(
 	message *PasteMessage,
 	expire, formatter string,
-	openDiscussion, burnAfterReading, gzip bool,
+	openDiscussion, burnAfterReading bool, gzip bool,
 	password string,
 ) (*CreatePasteResponse, error) {
 	masterKey, err := generateRandomBytes(32)
@@ -229,7 +229,11 @@ func (c *Client) CreatePaste(
 	uri.Host = c.URL.Host
 	uri.Path = c.URL.Path
 	uri.RawQuery = pasteId.RawQuery
-	uri.Fragment = base58.Encode(masterKey)
+	if burnAfterReading {
+		uri.Fragment = "-" + base58.Encode(masterKey)
+	} else {
+		uri.Fragment = base58.Encode(masterKey)
+	}
 
 	pasteResponse.URL = uri.String()
 
