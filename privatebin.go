@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Bryan Frimin <bryan@frimin.fr>.
+// Copyright (c) 2020-2023 Bryan Frimin <bryan@frimin.fr>.
 //
 // Permission to use, copy, modify, and/or distribute this software for
 // any purpose with or without fee is hereby granted, provided that the
@@ -21,18 +21,17 @@ import (
 	"compress/flate"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"mime"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"gearno.de/base58"
 	pv "gearno.de/privatebin/internal/version"
@@ -241,7 +240,6 @@ func (c *Client) CreatePaste(
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
-	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
 		return nil, err

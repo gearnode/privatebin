@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022 Bryan Frimin <bryan@frimin.fr>.
+// Copyright (c) 2020-2023 Bryan Frimin <bryan@frimin.fr>.
 //
 // Permission to use, copy, modify, and/or distribute this software for
 // any purpose with or without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -84,7 +84,7 @@ func loadCfgFile(path string) (*Cfg, error) {
 		return nil, fmt.Errorf("cannot open file: %v", err)
 	}
 
-	value, err := ioutil.ReadAll(file)
+	value, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read file: %v", err)
 	}
@@ -204,7 +204,7 @@ func main() {
 			fail("cannot open %q file: %v", *filename, err)
 		}
 
-		data, err := ioutil.ReadAll(file)
+		data, err := io.ReadAll(file)
 		if err != nil {
 			fail("cannot read %q file: %v", *filename, err)
 		}
@@ -212,7 +212,7 @@ func main() {
 		message.Filename = filepath.Base(*filename)
 		message.Data = data
 	} else {
-		data, err := ioutil.ReadAll(os.Stdin)
+		data, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			fail("cannot read stdin: %v", err)
 		}
