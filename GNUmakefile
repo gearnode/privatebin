@@ -19,10 +19,8 @@ SRC = cmd/privatebin/main.go privatebin.go go.sum go.mod
 
 all: build man
 
-build: $(BIN)
-
-$(BIN): $(SRC)
-	$(GO) build $(LDFLAGS) -o $@ cmd/privatebin/main.go
+build:
+	$(GO) build $(LDFLAGS) -o $(BIN) cmd/privatebin/main.go
 
 man:
 	@$(MKDIR) man
