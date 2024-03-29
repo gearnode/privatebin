@@ -28,6 +28,26 @@ import (
 	pv "gearno.de/privatebin/internal/version"
 )
 
+const (
+	helpMessage = `Usage of bin/privatebin:
+  -bin string
+        the privatebin name to use
+  -cfg-file string
+        the path of the configuration file (default "~/.config/privatebin/config.json")
+  -help
+        shows this help message
+  -version
+        prints the privatebin cli version
+
+Commands:
+  create [-attachment] [-burn-after-reading] [-expire=<value>] [-filename=<value>] [-formatter=<value>] [-gzip] [-open-discussion] [-password=<value>]
+        Create a new paste.
+
+  show [-password=<value>]
+        Show a paste content.
+`
+)
+
 func fail(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
 	os.Exit(1)
@@ -36,28 +56,20 @@ func fail(format string, args ...interface{}) {
 func main() {
 	ctx := context.Background()
 
+	help := flag.Bool("help", false, "shows this help message")
 	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
-	expire := flag.String("expire", "", "the time to live of the paste")
-	openDiscussion := flag.Bool("open-discussion", false, "enable discussion on the paste")
-	burnAfterReading := flag.Bool("burn-after-reading", false, "delete the paste after reading")
-	gzip := flag.Bool("gzip", true, "gzip the paste data")
-	formatter := flag.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
-	password := flag.String("password", "", "the paste password")
-	filename := flag.String("filename", "", "read filepath instead of stdin")
-	attachment := flag.Bool("attachment", false, "create the paste as an attachment")
-	help := flag.Bool("help", false, "shows this help message")
 	version := flag.Bool("version", false, "prints the privatebin cli version")
 
 	flag.Parse()
 
 	if *help {
-		flag.PrintDefaults()
+		fmt.Fprintf(os.Stdout, helpMessage)
 		os.Exit(0)
 	}
 
 	if *version {
-		fmt.Printf("privatebin cli version %s\n", pv.Version)
+		fmt.Fprintf(os.Stdout, "privatebin cli version %s\n", pv.Version)
 		os.Exit(1)
 	}
 
@@ -93,6 +105,40 @@ func main() {
 		),
 	)
 
+	if len(os.Args) == 1 {
+		fmt.Fprint(os.Stderr, helpMessage)
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "create":
+		handleCreate(ctx, binCfg, client)
+	case "show":
+		handleShow(ctx, binCfg, client)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
+		fmt.Fprintf(os.Stderr, "Use 'privatebin -h' for a list of commands.\n")
+		os.Exit(2)
+	}
+}
+
+func handleCreate(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) {
+	createCmd := flag.NewFlagSet("privatebin create", flag.ExitOnError)
+
+	expire := createCmd.String("expire", "", "the time to live of the paste")
+	openDiscussion := createCmd.Bool("open-discussion", false, "enable discussion on the paste")
+	burnAfterReading := createCmd.Bool("burn-after-reading", false, "delete the paste after reading")
+	gzip := createCmd.Bool("gzip", true, "gzip the paste data")
+	formatter := createCmd.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
+	password := createCmd.String("password", "", "the paste password")
+	filename := createCmd.String("filename", "", "read filepath instead of stdin")
+	attachment := createCmd.Bool("attachment", false, "create the paste as an attachment")
+
+	if err := createCmd.Parse(flag.Args()[1:]); err != nil {
+		fmt.Println("Failed to parse create command flags:", err)
+		os.Exit(3)
+	}
+
 	if expire != nil {
 		binCfg.Expire = *expire
 	}
@@ -113,8 +159,11 @@ func main() {
 		binCfg.Formatter = *formatter
 	}
 
-	var attachementName string
-	var data []byte
+	var (
+		attachementName string
+		data            []byte
+		err             error
+	)
 	if *filename != "" {
 		file, err := os.Open(*filename)
 		if err != nil {
@@ -160,4 +209,8 @@ func main() {
 	}
 
 	fmt.Printf("%s\n", resp)
+}
+
+func handleShow(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) {
+
 }
