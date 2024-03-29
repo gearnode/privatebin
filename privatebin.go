@@ -1,17 +1,15 @@
-// Copyright (c) 2020-2023 Bryan Frimin <bryan@frimin.fr>.
+// Copyright (c) 2020-2024 Bryan Frimin <bryan@frimin.fr>.
 //
-// Permission to use, copy, modify, and/or distribute this software for
-// any purpose with or without fee is hereby granted, provided that the
-// above copyright notice and this permission notice appear in all
-// copies.
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted, provided that the above
+// copyright notice and this permission notice appear in all copies.
 //
-// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
-// WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
-// AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
-// DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
-// PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-// TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+// REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+// INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+// LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+// OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
 package privatebin // import "gearno.de/privatebin"
@@ -19,6 +17,7 @@ package privatebin // import "gearno.de/privatebin"
 import (
 	"bytes"
 	"compress/flate"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -26,7 +25,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"mime"
 	"net/http"
 	"net/url"
@@ -39,204 +37,279 @@ import (
 )
 
 const (
-	PrivateBinAPIVersion = 2
+	CompressionAlgoNone CompressionAlgo = iota
+	CompressionAlgoGZip
+
+	apiVersion = 2
+
+	iterations = 310_000
+	keySize    = 256
+	tagSize    = 128
+	algorithm  = "aes"
+	mode       = "gcm"
 )
 
-type Client struct {
-	URL      url.URL
-	Username string
-	Password string
-}
+var (
+	userAgent = "privatebin-cli/" + pv.Version + " (source; https://github.com/gearnode/privatebin)"
+)
 
-type CreatePasteRequest struct {
-	V     int                    `json:"v"`
-	AData []interface{}          `json:"adata"`
-	Meta  CreatePasteRequestMeta `json:"meta"`
-	CT    string                 `json:"ct"`
-}
+type (
+	Client struct {
+		endpoint               url.URL
+		httpClient             *http.Client
+		username               string
+		password               string
+		customHTTPHeaderFields map[string]string
+		userAgent              string
+	}
 
-type CreatePasteRequestMeta struct {
-	Expire string `json:"expire"`
-}
+	Option func(c *Client)
 
-type CreatePasteResponse struct {
-	ID          string `json:"id"`
-	Status      int    `json:"status"`
-	Message     string `json:"message"`
-	URL         string `json:"url"`
-	DeleteToken string `json:"deletetoken"`
-}
+	CompressionAlgo uint8
 
-type PasteSpec struct {
-	IV          string
-	Salt        string
-	Iterations  int
-	KeySize     int
-	TagSize     int
-	Algorithm   string
-	Mode        string
-	Compression string
-}
+	CreatePasteOptions struct {
+		AttachmentName   string
+		Formatter        string
+		Expire           string
+		OpenDiscussion   bool
+		BurnAfterReading bool
+		Compress         CompressionAlgo
+		Password         []byte
+	}
 
-func (ps *PasteSpec) SpecArray() []interface{} {
-	return []interface{}{
-		ps.IV,
-		ps.Salt,
-		ps.Iterations,
-		ps.KeySize,
-		ps.TagSize,
-		ps.Algorithm,
-		ps.Mode,
-		ps.Compression,
+	createPasteRequest struct {
+		V     int                    `json:"v"`
+		AData []interface{}          `json:"adata"`
+		Meta  createPasteRequestMeta `json:"meta"`
+		CT    string                 `json:"ct"`
+	}
+
+	createPasteRequestMeta struct {
+		Expire string `json:"expire"`
+	}
+
+	createPasteResponse struct {
+		ID          string `json:"id"`
+		Status      int    `json:"status"`
+		Message     string `json:"message"`
+		URL         string `json:"url"`
+		DeleteToken string `json:"deletetoken"`
+	}
+)
+
+func WithBasicAuth(username, password string) Option {
+	return func(c *Client) {
+		c.username = username
+		c.password = password
 	}
 }
 
-func NewClient(uri *url.URL, username, password string) *Client {
-	return &Client{
-		URL:      *uri,
-		Username: username,
-		Password: password,
+func WithCustomerHeaderField(k, v string) Option {
+	return func(c *Client) {
+		c.customHTTPHeaderFields[k] = v
 	}
 }
 
-type PasteContent struct {
-	Paste          string `json:"paste"`
-	Attachment     string `json:"attachment,omitempty"`
-	AttachmentName string `json:"attachment_name,omitempty"`
+func WithUserAgent(userAgent string) Option {
+	return func(c *Client) {
+		c.userAgent = userAgent
+	}
 }
 
-type PasteMessage struct {
-	Attachment bool
-	Filename   string
-	Data       []byte
+func NewClient(endpoint url.URL, options ...Option) *Client {
+	client := &Client{
+		endpoint:               endpoint,
+		httpClient:             http.DefaultClient,
+		customHTTPHeaderFields: make(map[string]string),
+		userAgent:              userAgent,
+	}
+
+	for _, option := range options {
+		option(client)
+	}
+
+	return client
 }
 
 func (c *Client) CreatePaste(
-	message *PasteMessage,
-	expire, formatter string,
-	openDiscussion, burnAfterReading bool, gzip bool,
-	password string,
-) (*CreatePasteResponse, error) {
-	masterKey, err := generateRandomBytes(32)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot generate random bytes: %w", err)
-	}
-
-	pasteContent := PasteContent{}
-	if message.Attachment {
-		pasteContent.AttachmentName = message.Filename
-		ext := filepath.Ext(message.Filename)
+	ctx context.Context,
+	data []byte,
+	opts CreatePasteOptions,
+) (string, error) {
+	paste := map[string]string{}
+	if opts.AttachmentName != "" {
+		ext := filepath.Ext(opts.AttachmentName)
 		mimeType := mime.TypeByExtension(ext)
 		if mimeType == "" {
 			mimeType = "application/octet-stream"
 		}
 
-		pasteContent.AttachmentName = message.Filename
-		if pasteContent.AttachmentName == "" {
-			pasteContent.AttachmentName = "stdin"
+		paste["attachment_name"] = "stdin"
+		if opts.AttachmentName != "" {
+			paste["attachment_name"] = opts.AttachmentName
 		}
-		pasteContent.Attachment = fmt.Sprintf(
+
+		paste["attachment"] = fmt.Sprintf(
 			"data:%s;base64,%s",
 			mimeType,
-			base64.StdEncoding.EncodeToString(message.Data),
+			base64.StdEncoding.EncodeToString(data),
 		)
 	} else {
-		pasteContent.Paste = string(message.Data)
+		paste["paste"] = string(data)
 	}
 
-	pasteContentStr, err := json.Marshal(&pasteContent)
+	pasteData, err := json.Marshal(&paste)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot marshal paste content: %w", err)
+		return "", fmt.Errorf("cannot json marshal paste content: %w", err)
 	}
 
-	pasteData, err :=
-		encrypt(masterKey, password, pasteContentStr, formatter,
-			openDiscussion, burnAfterReading, gzip)
+	masterKey, err := generateRandomBytes(32)
 	if err != nil {
-		return nil, fmt.Errorf("cannot encrypt data: %w", err)
+		return "", fmt.Errorf("cannot generate random bytes: %w", err)
 	}
 
-	createPasteReq := &CreatePasteRequest{
-		V:     PrivateBinAPIVersion,
-		AData: pasteData.adata(),
-		Meta:  CreatePasteRequestMeta{Expire: expire},
-		CT: base64.RawStdEncoding.
-			EncodeToString(pasteData.Data),
-	}
-
-	body, err := json.Marshal(createPasteReq)
+	iv, err := generateRandomBytes(12)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot marshal paste request: %w", err)
+		return "", fmt.Errorf("cannot generate iv: %w", err)
 	}
 
-	req, err := http.NewRequest("POST",
-		c.URL.String(),
-		bytes.NewBuffer(body))
+	salt, err := generateRandomBytes(8)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create http request: %w", err)
+		return "", fmt.Errorf("cannot generate salt: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "privatebin-cli/"+pv.Version+" (source; https://github.com/gearnode/privatebin)")
+	masterKeyWithPassword := append(masterKey, opts.Password...)
+
+	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
+
+	compression := "none"
+	if opts.Compress == CompressionAlgoGZip {
+		compression = "zlib"
+
+		var buf bytes.Buffer
+		fw, err := flate.NewWriter(&buf, flate.BestCompression)
+		if err != nil {
+			return "", fmt.Errorf("cannot create new flate writer: %w", err)
+		}
+
+		if _, err := fw.Write(pasteData); err != nil {
+			return "", fmt.Errorf("cannot write in flate buf: %w", err)
+		}
+
+		if err := fw.Close(); err != nil {
+			return "", fmt.Errorf("cannot close flate writer: %w", err)
+		}
+
+		pasteData = buf.Bytes()
+	}
+
+	adata := []interface{}{
+		[]interface{}{
+			base64.RawStdEncoding.EncodeToString(iv),
+			base64.RawStdEncoding.EncodeToString(salt),
+			iterations,
+			keySize,
+			tagSize,
+			algorithm,
+			mode,
+			compression,
+		},
+		opts.Formatter,
+		btoi(opts.OpenDiscussion),
+		btoi(opts.BurnAfterReading),
+	}
+
+	authData, err := json.Marshal(adata)
+	if err != nil {
+		return "", fmt.Errorf("cannot encode adata: %w", err)
+	}
+
+	cipherBlock, err := aes.NewCipher(key)
+	if err != nil {
+		return "", fmt.Errorf("cannot create new cipher: %w", err)
+	}
+
+	gcm, err := cipher.NewGCM(cipherBlock)
+	if err != nil {
+		return "", fmt.Errorf("cannot create new galois counter mode: %w", err)
+	}
+
+	cipherText := gcm.Seal(nil, iv, pasteData, authData)
+
+	createPasteReq := &createPasteRequest{
+		V:     apiVersion,
+		AData: adata,
+		Meta:  createPasteRequestMeta{Expire: opts.Expire},
+		CT:    base64.RawStdEncoding.EncodeToString(cipherText),
+	}
+
+	var reqBody bytes.Buffer
+	err = json.NewEncoder(&reqBody).Encode(createPasteReq)
+	if err != nil {
+		return "", fmt.Errorf("cannot marshal paste request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		c.endpoint.String(),
+		&reqBody,
+	)
+	if err != nil {
+		return "", fmt.Errorf("cannot create request: %w", err)
+	}
+
+	for k, v := range c.customHTTPHeaderFields {
+		req.Header.Set(k, v)
+	}
+
+	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
+	req.Header.Set("Content-Length", strconv.Itoa(reqBody.Len()))
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")
-	req.SetBasicAuth(c.Username, c.Password)
 
-	client := &http.Client{}
-	res, err := client.Do(req)
+	if c.username != "" || c.password != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
+
+	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot execute http request: %w", err)
+		return "", fmt.Errorf("cannot execute http request: %w", err)
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(
-			"pastebin server responds with %q status code",
-			res.Status)
-	}
-
-	resBody, err := io.ReadAll(res.Body)
+	pasteResponse := createPasteResponse{}
+	err = json.NewDecoder(res.Body).Decode(&pasteResponse)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot read response body: %w", err)
-	}
-
-	pasteResponse := CreatePasteResponse{}
-	err = json.Unmarshal(resBody, &pasteResponse)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"cannot unmarshal response: %w", err)
+		return "", fmt.Errorf("cannot decode response body: %w", err)
 	}
 
 	if pasteResponse.Status != 0 {
-		return nil, fmt.Errorf(
-			"status of the paste is not zero: %s",
-			pasteResponse.Message)
+		return "", fmt.Errorf("status of the paste is not zero: %s", pasteResponse.Message)
 	}
 
-	pasteId, err := url.Parse(pasteResponse.URL)
+	pasteID, err := url.Parse(pasteResponse.URL)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse paste url: %w", err)
+		return "", fmt.Errorf("cannot parse paste url: %w", err)
 	}
 
-	var uri url.URL
-	uri.Scheme = c.URL.Scheme
-	uri.Host = c.URL.Host
-	uri.Path = c.URL.Path
-	uri.RawQuery = pasteId.RawQuery
-	if burnAfterReading {
-		uri.Fragment = "-" + base58.Encode(masterKey)
-	} else {
-		uri.Fragment = base58.Encode(masterKey)
+	pasteLink := url.URL{
+		Scheme:   c.endpoint.Scheme,
+		Host:     c.endpoint.Host,
+		Path:     c.endpoint.Path,
+		RawQuery: pasteID.RawQuery,
+		Fragment: base58.Encode(masterKey),
 	}
 
-	pasteResponse.URL = uri.String()
+	return pasteLink.String(), nil
+}
 
-	return &pasteResponse, nil
+func btoi(v bool) int {
+	if v {
+		return 1
+	}
+
+	return 0
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
@@ -245,104 +318,4 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
-}
-
-type PasteData struct {
-	*PasteSpec
-	Data             []byte
-	Formatter        string
-	OpenDiscussion   bool
-	BurnAfterReading bool
-}
-
-func (p *PasteData) adata() []interface{} {
-	var b2i = map[bool]int8{false: 0, true: 1}
-
-	return []interface{}{
-		p.SpecArray(),
-		p.Formatter,
-		b2i[p.OpenDiscussion],
-		b2i[p.BurnAfterReading],
-	}
-}
-
-func encrypt(
-	masterKey []byte,
-	password string,
-	message []byte,
-	formatter string,
-	openDiscussion, burnAfterReading, gzipCompress bool,
-) (*PasteData, error) {
-	iv, err := generateRandomBytes(12)
-	if err != nil {
-		return nil, err
-	}
-
-	salt, err := generateRandomBytes(8)
-	if err != nil {
-		return nil, err
-	}
-
-	pasteSpec := &PasteSpec{
-		IV:          base64.RawStdEncoding.EncodeToString(iv),
-		Salt:        base64.RawStdEncoding.EncodeToString(salt),
-		Iterations:  310_000,
-		KeySize:     256,
-		TagSize:     128,
-		Algorithm:   "aes",
-		Mode:        "gcm",
-		Compression: "none",
-	}
-
-	if gzipCompress {
-		pasteSpec.Compression = "zlib"
-
-		var buf bytes.Buffer
-		fw, err := flate.NewWriter(&buf, flate.BestCompression)
-		if err != nil {
-			return nil, err
-		}
-
-		if _, err := fw.Write(message); err != nil {
-			return nil, err
-		}
-
-		if err := fw.Close(); err != nil {
-			return nil, err
-		}
-
-		message = buf.Bytes()
-	}
-
-	paste := &PasteData{
-		Formatter:        formatter,
-		OpenDiscussion:   openDiscussion,
-		BurnAfterReading: burnAfterReading,
-		PasteSpec:        pasteSpec,
-	}
-
-	masterKey = append(masterKey, []byte(password)...)
-	key := pbkdf2.Key(masterKey,
-		salt, paste.Iterations, 32, sha256.New)
-
-	adata, err := json.Marshal(paste.adata())
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return nil, err
-	}
-
-	data := gcm.Seal(nil, iv, message, adata)
-
-	paste.Data = data
-
-	return paste, nil
 }

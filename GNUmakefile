@@ -13,14 +13,13 @@ VERSION = 1.4.0
 LDFLAGS = -ldflags "-X 'gearno.de/privatebin/internal/version.Version=$(VERSION)'"
 
 BIN = bin/privatebin
-SRC = cmd/privatebin/main.go privatebin.go go.sum go.mod
 
 .PHONY: all build man install uninstall clean
 
 all: build man
 
 build:
-	$(GO) build $(LDFLAGS) -o $(BIN) cmd/privatebin/main.go
+	$(GO) build $(LDFLAGS) -o $(BIN) cmd/privatebin/main.go cmd/privatebin/cfg.go
 
 man:
 	@$(MKDIR) man
