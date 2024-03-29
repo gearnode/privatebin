@@ -79,7 +79,7 @@ type (
 
 	createPasteRequest struct {
 		V     int                    `json:"v"`
-		AData []interface{}          `json:"adata"`
+		AData []any                  `json:"adata"`
 		Meta  createPasteRequestMeta `json:"meta"`
 		CT    string                 `json:"ct"`
 	}
@@ -203,8 +203,8 @@ func (c *Client) CreatePaste(
 		pasteData = buf.Bytes()
 	}
 
-	adata := []interface{}{
-		[]interface{}{
+	adata := []any{
+		[]any{
 			base64.RawStdEncoding.EncodeToString(iv),
 			base64.RawStdEncoding.EncodeToString(salt),
 			iterations,
