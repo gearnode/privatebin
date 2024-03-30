@@ -236,11 +236,29 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot base64 decode salt: %w", err)
 	}
 
+	iterations, ok := spec[2].(int)
+	if !ok {
+		return nil, errors.New("invalid iteration type")
+	}
+
+	keySize, ok := spec[3].(int)
+	if !ok {
+		return nil, errors.New("invalid key size type")
+	}
+
 	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
+
+	if spec[5] != "aes" {
+		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec[5])
+	}
 
 	cipherBlock, err := aes.NewCipher(key)
 	if err != nil {
 		return "", fmt.Errorf("cannot create new cipher: %w", err)
+	}
+
+	if spec[6] != "gcm" {
+		return nil, fmt.Errorf("unsupported encryption mode: %q", spec[6])
 	}
 
 	gcm, err := cipher.NewGCM(cipherBlock)
