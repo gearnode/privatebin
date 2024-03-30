@@ -24,7 +24,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"net/url"
@@ -79,7 +81,7 @@ type (
 
 	createPasteRequest struct {
 		V     int                    `json:"v"`
-		AData []any                  `json:"adata"`
+		AData [4]any                 `json:"adata"`
 		Meta  createPasteRequestMeta `json:"meta"`
 		CT    string                 `json:"ct"`
 	}
@@ -94,6 +96,25 @@ type (
 		Message     string `json:"message"`
 		URL         string `json:"url"`
 		DeleteToken string `json:"deletetoken"`
+	}
+
+	showPasteRequestMeta struct {
+		Created    int `json:"created"`
+		TimeToLive int `json:"time_to_live"`
+	}
+
+	showPasteResponse struct {
+		Status        int                  `json:"status"`
+		ID            string               `json:"id"`
+		URL           string               `json:"url"`
+		V             int                  `json:"v"`
+		AData         [4]any               `json:"adata"`
+		Meta          showPasteRequestMeta `json:"meta"`
+		CT            string               `json:"ct"`
+		Comments      []any                `json:"comments"`
+		CommentCount  int                  `json:"comment_count"`
+		CommentOffset int                  `json:"comment_offset"`
+		Context       string               `json:"@context"`
 	}
 )
 
@@ -129,6 +150,126 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 	}
 
 	return client
+}
+
+func (c *Client) ShowPaste(
+	ctx context.Context,
+	urlWithMasterKey url.URL,
+	password []byte,
+) (any, error) {
+	masterKey, err := base58.Decode(urlWithMasterKey.Fragment)
+	if err != nil {
+		return nil, fmt.Errorf("cannot decode master key: %w", err)
+	}
+
+	urlWithoutMasterKey := urlWithMasterKey
+	urlWithoutMasterKey.Fragment = ""
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		urlWithoutMasterKey.String(),
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("X-Requested-With", "JSONHttpRequest")
+
+	if c.username != "" || c.password != "" {
+		req.SetBasicAuth(c.username, c.password)
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("cannot execute http request: %w", err)
+	}
+	defer res.Body.Close()
+
+	var pasteResponse showPasteResponse
+
+	err = json.NewDecoder(res.Body).Decode(&pasteResponse)
+	if err != nil {
+		return nil, fmt.Errorf("cannot decode response body: %w", err)
+	}
+
+	masterKeyWithPassword := append(masterKey, password...)
+
+	encryptedCipherText, err := base64.RawStdEncoding.DecodeString(pasteResponse.CT)
+	if err != nil {
+		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
+	}
+
+	authData, err := json.Marshal(pasteResponse.AData)
+	if err != nil {
+		return "", fmt.Errorf("cannot encode adata: %w", err)
+	}
+
+	spec, ok := pasteResponse.AData[0].([]any)
+	if !ok {
+		return nil, errors.New("adata spec is not valid")
+	}
+
+	if len(spec) != 8 {
+		return nil, errors.New("adata spec is not valid")
+	}
+
+	encodedIv, ok := spec[0].(string)
+	if !ok {
+		return nil, errors.New("iv is not valid")
+	}
+
+	iv, err := base64.RawStdEncoding.DecodeString(encodedIv)
+	if err != nil {
+		return nil, fmt.Errorf("cannot base64 decode iv: %w", err)
+	}
+
+	encodedSalt, ok := spec[1].(string)
+	if !ok {
+		return nil, errors.New("salt is not valid")
+	}
+
+	salt, err := base64.RawStdEncoding.DecodeString(encodedSalt)
+	if err != nil {
+		return nil, fmt.Errorf("cannot base64 decode salt: %w", err)
+	}
+
+	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
+
+	cipherBlock, err := aes.NewCipher(key)
+	if err != nil {
+		return "", fmt.Errorf("cannot create new cipher: %w", err)
+	}
+
+	gcm, err := cipher.NewGCM(cipherBlock)
+	if err != nil {
+		return "", fmt.Errorf("cannot create new galois counter mode: %w", err)
+	}
+
+	cipherText, err := gcm.Open(nil, iv, encryptedCipherText, authData)
+	if err != nil {
+		return nil, err
+	}
+
+	if spec[7] == "zlib" {
+		buf := bytes.NewBuffer(cipherText)
+		fr := flate.NewReader(buf)
+		defer fr.Close()
+		cipherText, err = io.ReadAll(fr)
+		if err != nil {
+			return nil, fmt.Errorf("cannot read gzip: %w", err)
+		}
+	}
+
+	paste := map[string]string{}
+	err = json.Unmarshal(cipherText, &paste)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal paste content: %w", err)
+	}
+
+	return paste, nil
 }
 
 func (c *Client) CreatePaste(
@@ -203,8 +344,8 @@ func (c *Client) CreatePaste(
 		pasteData = buf.Bytes()
 	}
 
-	adata := []any{
-		[]any{
+	adata := [4]any{
+		[8]any{
 			base64.RawStdEncoding.EncodeToString(iv),
 			base64.RawStdEncoding.EncodeToString(salt),
 			iterations,

@@ -43,7 +43,7 @@ Commands:
   create [-attachment] [-burn-after-reading] [-expire=<value>] [-filename=<value>] [-formatter=<value>] [-gzip] [-open-discussion] [-password=<value>]
         Create a new paste.
 
-  show [-password=<value>]
+  show [-insecure] [-password=<value>]
         Show a paste content.
 `
 )
@@ -212,5 +212,28 @@ func handleCreate(ctx context.Context, binCfg *BinCfg, client *privatebin.Client
 }
 
 func handleShow(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) {
+	showCmd := flag.NewFlagSet("privatebin show", flag.ExitOnError)
 
+	insecure := showCmd.Bool("insecure", false, "")
+	password := showCmd.String("password", "", "the paste password")
+
+	if err := showCmd.Parse(flag.Args()[1:]); err != nil {
+		fmt.Println("Failed to parse create command flags:", err)
+		os.Exit(3)
+	}
+
+	value := showCmd.Arg(0)
+	link, err := url.Parse(value)
+	if err != nil {
+		fail("cannot parse url: %v", err)
+	}
+
+	fmt.Printf("XXX %v\n", *insecure)
+
+	resp, err := client.ShowPaste(ctx, *link, []byte(*password))
+	if err != nil {
+		fail("cnanot show the paste: %v", err)
+	}
+
+	fmt.Printf("%v\n", resp)
 }
