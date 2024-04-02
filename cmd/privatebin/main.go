@@ -196,11 +196,11 @@ func handleCreate(ctx context.Context, binCfg *BinCfg, client *privatebin.Client
 		OpenDiscussion:   *binCfg.OpenDiscussion,
 		BurnAfterReading: *binCfg.BurnAfterReading,
 		Password:         []byte(*password),
-		Compress:         privatebin.CompressionAlgoNone,
+		Compress:         privatebin.CompressionAlgorithmNone,
 	}
 
 	if *binCfg.GZip {
-		options.Compress = privatebin.CompressionAlgoGZip
+		options.Compress = privatebin.CompressionAlgorithmGZip
 	}
 
 	resp, err := client.CreatePaste(ctx, data, options)

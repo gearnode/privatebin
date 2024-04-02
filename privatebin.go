@@ -24,7 +24,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -39,9 +38,6 @@ import (
 )
 
 const (
-	CompressionAlgoNone CompressionAlgo = iota
-	CompressionAlgoGZip
-
 	apiVersion = 2
 
 	iterations = 310_000
@@ -67,15 +63,13 @@ type (
 
 	Option func(c *Client)
 
-	CompressionAlgo uint8
-
 	CreatePasteOptions struct {
 		AttachmentName   string
 		Formatter        string
 		Expire           string
 		OpenDiscussion   bool
 		BurnAfterReading bool
-		Compress         CompressionAlgo
+		Compress         CompressionAlgorithm
 		Password         []byte
 	}
 
@@ -108,7 +102,7 @@ type (
 		ID            string               `json:"id"`
 		URL           string               `json:"url"`
 		V             int                  `json:"v"`
-		AData         [4]any               `json:"adata"`
+		AData         AData                `json:"adata"`
 		Meta          showPasteRequestMeta `json:"meta"`
 		CT            string               `json:"ct"`
 		Comments      []any                `json:"comments"`
@@ -207,49 +201,16 @@ func (c *Client) ShowPaste(
 		return "", fmt.Errorf("cannot encode adata: %w", err)
 	}
 
-	spec, ok := pasteResponse.AData[0].([]any)
-	if !ok {
-		return nil, errors.New("adata spec is not valid")
-	}
+	key := pbkdf2.Key(
+		masterKeyWithPassword,
+		pasteResponse.AData.Spec.Salt,
+		pasteResponse.AData.Spec.Iterations,
+		pasteResponse.AData.Spec.KeySize/8,
+		sha256.New,
+	)
 
-	if len(spec) != 8 {
-		return nil, errors.New("adata spec is not valid")
-	}
-
-	encodedIv, ok := spec[0].(string)
-	if !ok {
-		return nil, errors.New("iv is not valid")
-	}
-
-	iv, err := base64.RawStdEncoding.DecodeString(encodedIv)
-	if err != nil {
-		return nil, fmt.Errorf("cannot base64 decode iv: %w", err)
-	}
-
-	encodedSalt, ok := spec[1].(string)
-	if !ok {
-		return nil, errors.New("salt is not valid")
-	}
-
-	salt, err := base64.RawStdEncoding.DecodeString(encodedSalt)
-	if err != nil {
-		return nil, fmt.Errorf("cannot base64 decode salt: %w", err)
-	}
-
-	iterations, ok := spec[2].(float64)
-	if !ok {
-		return nil, errors.New("invalid iteration type")
-	}
-
-	keySize, ok := spec[3].(float64)
-	if !ok {
-		return nil, errors.New("invalid key size type")
-	}
-
-	key := pbkdf2.Key(masterKeyWithPassword, salt, int(iterations), int(keySize)/8, sha256.New)
-
-	if spec[5] != "aes" {
-		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec[5])
+	if pasteResponse.AData.Spec.Algorithm != EncryptionAlgorithmAES {
+		return nil, fmt.Errorf("unsupported encryption algorithm: %q", pasteResponse.AData.Spec.Algorithm)
 	}
 
 	cipherBlock, err := aes.NewCipher(key)
@@ -257,8 +218,8 @@ func (c *Client) ShowPaste(
 		return "", fmt.Errorf("cannot create new cipher: %w", err)
 	}
 
-	if spec[6] != "gcm" {
-		return nil, fmt.Errorf("unsupported encryption mode: %q", spec[6])
+	if pasteResponse.AData.Spec.Mode != EncryptionModeGCM {
+		return nil, fmt.Errorf("unsupported encryption mode: %q", pasteResponse.AData.Spec.Mode)
 	}
 
 	gcm, err := cipher.NewGCM(cipherBlock)
@@ -266,12 +227,12 @@ func (c *Client) ShowPaste(
 		return "", fmt.Errorf("cannot create new galois counter mode: %w", err)
 	}
 
-	cipherText, err := gcm.Open(nil, iv, encryptedCipherText, authData)
+	cipherText, err := gcm.Open(nil, pasteResponse.AData.Spec.IV, encryptedCipherText, authData)
 	if err != nil {
 		return nil, err
 	}
 
-	if spec[7] == "zlib" {
+	if pasteResponse.AData.Spec.Compression == CompressionAlgorithmGZip {
 		buf := bytes.NewBuffer(cipherText)
 		fr := flate.NewReader(buf)
 		defer fr.Close()
@@ -342,7 +303,7 @@ func (c *Client) CreatePaste(
 	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
 
 	compression := "none"
-	if opts.Compress == CompressionAlgoGZip {
+	if opts.Compress == CompressionAlgorithmGZip {
 		compression = "zlib"
 
 		var buf bytes.Buffer
@@ -469,6 +430,14 @@ func btoi(v bool) int {
 	}
 
 	return 0
+}
+
+func itob(v int) bool {
+	if v == 0 {
+		return false
+	}
+
+	return true
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
