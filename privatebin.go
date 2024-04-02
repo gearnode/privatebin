@@ -236,17 +236,17 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot base64 decode salt: %w", err)
 	}
 
-	iterations, ok := spec[2].(int)
+	iterations, ok := spec[2].(float64)
 	if !ok {
 		return nil, errors.New("invalid iteration type")
 	}
 
-	keySize, ok := spec[3].(int)
+	keySize, ok := spec[3].(float64)
 	if !ok {
 		return nil, errors.New("invalid key size type")
 	}
 
-	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
+	key := pbkdf2.Key(masterKeyWithPassword, salt, int(iterations), int(keySize)/8, sha256.New)
 
 	if spec[5] != "aes" {
 		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec[5])
