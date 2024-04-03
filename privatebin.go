@@ -75,7 +75,7 @@ type (
 
 	createPasteRequest struct {
 		V     int                    `json:"v"`
-		AData [4]any                 `json:"adata"`
+		AData AData                  `json:"adata"`
 		Meta  createPasteRequestMeta `json:"meta"`
 		CT    string                 `json:"ct"`
 	}
@@ -302,10 +302,7 @@ func (c *Client) CreatePaste(
 
 	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
 
-	compression := "none"
 	if opts.Compress == CompressionAlgorithmGZip {
-		compression = "zlib"
-
 		var buf bytes.Buffer
 		fw, err := flate.NewWriter(&buf, flate.BestCompression)
 		if err != nil {
@@ -323,20 +320,20 @@ func (c *Client) CreatePaste(
 		pasteData = buf.Bytes()
 	}
 
-	adata := [4]any{
-		[8]any{
-			base64.RawStdEncoding.EncodeToString(iv),
-			base64.RawStdEncoding.EncodeToString(salt),
+	adata := AData{
+		Spec{
+			iv,
+			salt,
 			iterations,
 			keySize,
 			tagSize,
-			algorithm,
-			mode,
-			compression,
+			EncryptionAlgorithmAES,
+			EncryptionModeGCM,
+			opts.Compress,
 		},
 		opts.Formatter,
-		btoi(opts.OpenDiscussion),
-		btoi(opts.BurnAfterReading),
+		opts.OpenDiscussion,
+		opts.BurnAfterReading,
 	}
 
 	authData, err := json.Marshal(adata)
