@@ -430,11 +430,7 @@ func btoi(v bool) int {
 }
 
 func itob(v int) bool {
-	if v == 0 {
-		return false
-	}
-
-	return true
+	return v != 0
 }
 
 func generateRandomBytes(n uint32) ([]byte, error) {
