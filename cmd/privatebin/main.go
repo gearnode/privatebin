@@ -232,7 +232,7 @@ func handleShow(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) 
 
 	resp, err := client.ShowPaste(ctx, *link, []byte(*password))
 	if err != nil {
-		fail("cnanot show the paste: %v", err)
+		fail("cannot show the paste: %v", err)
 	}
 
 	fmt.Printf("%v\n", resp)
