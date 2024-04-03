@@ -64,7 +64,7 @@ func main() {
 	flag.Parse()
 
 	if *help {
-		fmt.Fprintf(os.Stdout, helpMessage)
+		fmt.Fprint(os.Stdout, helpMessage)
 		os.Exit(0)
 	}
 
