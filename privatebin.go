@@ -20,7 +20,6 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -419,24 +418,4 @@ func (c *Client) CreatePaste(
 	}
 
 	return pasteLink.String(), nil
-}
-
-func btoi(v bool) int {
-	if v {
-		return 1
-	}
-
-	return 0
-}
-
-func itob(v int) bool {
-	return v != 0
-}
-
-func generateRandomBytes(n uint32) ([]byte, error) {
-	b := make([]byte, n)
-	if _, err := rand.Read(b); err != nil {
-		return nil, err
-	}
-	return b, nil
 }
