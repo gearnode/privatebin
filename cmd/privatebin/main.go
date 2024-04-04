@@ -230,7 +230,11 @@ func handleShow(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) 
 
 	fmt.Printf("XXX %v\n", *insecure)
 
-	resp, err := client.ShowPaste(ctx, *link, []byte(*password))
+	options := privatebin.ShowPasteOptions{
+		Password: []byte(*password),
+	}
+
+	resp, err := client.ShowPaste(ctx, *link, options)
 	if err != nil {
 		fail("cannot show the paste: %v", err)
 	}

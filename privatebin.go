@@ -68,6 +68,10 @@ type (
 		Password         []byte
 	}
 
+	ShowPasteOptions struct {
+		Password []byte
+	}
+
 	createPasteRequest struct {
 		V     int                    `json:"v"`
 		AData AData                  `json:"adata"`
@@ -144,7 +148,7 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 func (c *Client) ShowPaste(
 	ctx context.Context,
 	urlWithMasterKey url.URL,
-	password []byte,
+	opts ShowPasteOptions,
 ) (any, error) {
 	masterKey, err := base58.Decode(urlWithMasterKey.Fragment)
 	if err != nil {
@@ -184,7 +188,7 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot decode response body: %w", err)
 	}
 
-	masterKeyWithPassword := append(masterKey, password...)
+	masterKeyWithPassword := append(masterKey, opts.Password...)
 
 	encryptedCipherText, err := base64.RawStdEncoding.DecodeString(pasteResponse.CT)
 	if err != nil {
