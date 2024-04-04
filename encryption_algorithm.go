@@ -16,7 +16,6 @@ package privatebin
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 const (
