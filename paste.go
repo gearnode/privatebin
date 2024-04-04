@@ -86,7 +86,7 @@ func (p *Paste) UnmarshalJSON(data []byte) error {
 			return errors.New("invalid attachment: invalid data URL format")
 		}
 
-		if !strings.HasPrefix(parts[0], ";base64") {
+		if !strings.HasSuffix(parts[0], ";base64") {
 			return errors.New("invalid attachment: missing or invalid base64 encoding")
 		}
 
