@@ -197,7 +197,7 @@ func (c *Client) ShowPaste(
 
 	authData, err := json.Marshal(pasteResponse.AData)
 	if err != nil {
-		return "", fmt.Errorf("cannot encode adata: %w", err)
+		return nil, fmt.Errorf("cannot encode adata: %w", err)
 	}
 
 	key := pbkdf2.Key(
@@ -214,7 +214,7 @@ func (c *Client) ShowPaste(
 
 	cipherBlock, err := aes.NewCipher(key)
 	if err != nil {
-		return "", fmt.Errorf("cannot create new cipher: %w", err)
+		return nil, fmt.Errorf("cannot create new cipher: %w", err)
 	}
 
 	if pasteResponse.AData.Spec.Mode != EncryptionModeGCM {
@@ -223,7 +223,7 @@ func (c *Client) ShowPaste(
 
 	gcm, err := cipher.NewGCM(cipherBlock)
 	if err != nil {
-		return "", fmt.Errorf("cannot create new galois counter mode: %w", err)
+		return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
 	}
 
 	cipherText, err := gcm.Open(nil, pasteResponse.AData.Spec.IV, encryptedCipherText, authData)
