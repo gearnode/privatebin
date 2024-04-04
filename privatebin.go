@@ -321,7 +321,7 @@ func (c *Client) CreatePaste(
 		Spec{
 			iv,
 			salt,
-			iterations,
+			iterationCount,
 			keySize,
 			tagSize,
 			EncryptionAlgorithmAES,
