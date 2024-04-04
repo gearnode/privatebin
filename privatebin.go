@@ -25,10 +25,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
 
 	"gearno.de/base58"
@@ -253,26 +251,12 @@ func (c *Client) CreatePaste(
 	data []byte,
 	opts CreatePasteOptions,
 ) (string, error) {
-	paste := map[string]string{}
+	var paste Paste
+
 	if opts.AttachmentName != "" {
-		ext := filepath.Ext(opts.AttachmentName)
-		mimeType := mime.TypeByExtension(ext)
-		if mimeType == "" {
-			mimeType = "application/octet-stream"
-		}
-
-		paste["attachment_name"] = "stdin"
-		if opts.AttachmentName != "" {
-			paste["attachment_name"] = opts.AttachmentName
-		}
-
-		paste["attachment"] = fmt.Sprintf(
-			"data:%s;base64,%s",
-			mimeType,
-			base64.StdEncoding.EncodeToString(data),
-		)
+		paste = Paste{nil, data, opts.AttachmentName}
 	} else {
-		paste["paste"] = string(data)
+		paste = Paste{data, nil, ""}
 	}
 
 	pasteData, err := json.Marshal(&paste)
