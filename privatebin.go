@@ -241,7 +241,7 @@ func (c *Client) ShowPaste(
 		}
 	}
 
-	paste := map[string]string{}
+	var paste Paste
 	err = json.Unmarshal(cipherText, &paste)
 	if err != nil {
 		return nil, fmt.Errorf("cannot unmarshal paste content: %w", err)
