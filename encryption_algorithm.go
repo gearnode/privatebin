@@ -27,16 +27,7 @@ const (
 type EncryptionAlgorithm uint8
 
 func (ea EncryptionAlgorithm) MarshalJSON() ([]byte, error) {
-	var s string
-
-	switch ea {
-	case EncryptionAlgorithmAES:
-		s = "aes"
-	default:
-		return nil, fmt.Errorf("invalid EncryptionAlgorithm value: %v", ea)
-	}
-
-	return json.Marshal(s)
+	return json.Marshal(ea.String())
 }
 
 func (ea *EncryptionAlgorithm) UnmarshalJSON(data []byte) error {
@@ -47,14 +38,14 @@ func (ea *EncryptionAlgorithm) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return fmt.Errorf("cannot decode EncryptionAlgorithm: %w", err)
+		return err
 	}
 
 	switch s {
 	case "aes":
 		v = EncryptionAlgorithmAES
 	default:
-		return fmt.Errorf("invalid EncryptionAlgorithm value: %v", s)
+		v = EncryptionAlgorithmUnknow
 	}
 
 	*ea = v

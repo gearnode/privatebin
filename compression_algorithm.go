@@ -28,18 +28,7 @@ const (
 type CompressionAlgorithm uint8
 
 func (ca CompressionAlgorithm) MarshalJSON() ([]byte, error) {
-	var s string
-
-	switch ca {
-	case CompressionAlgorithmNone:
-		s = "none"
-	case CompressionAlgorithmGZip:
-		s = "zlib"
-	default:
-		return nil, fmt.Errorf("invalid CompressionAlgorithm value: %v", ca)
-	}
-
-	return json.Marshal(s)
+	return json.Marshal(ca.String())
 }
 
 func (ca *CompressionAlgorithm) UnmarshalJSON(data []byte) error {
@@ -50,7 +39,7 @@ func (ca *CompressionAlgorithm) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return fmt.Errorf("cannot decode compression algorithm: %w", err)
+		return err
 	}
 
 	switch s {
@@ -59,7 +48,7 @@ func (ca *CompressionAlgorithm) UnmarshalJSON(data []byte) error {
 	case "zlib":
 		v = CompressionAlgorithmGZip
 	default:
-		return fmt.Errorf("invalid compression algorithm value: %v", s)
+		v = CompressionAlgorithmUnknow
 	}
 
 	*ca = v

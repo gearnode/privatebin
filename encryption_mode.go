@@ -16,7 +16,6 @@ package privatebin
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 const (
@@ -27,16 +26,7 @@ const (
 type EncryptionMode uint8
 
 func (em EncryptionMode) MarshalJSON() ([]byte, error) {
-	var s string
-
-	switch em {
-	case EncryptionModeGCM:
-		s = "gcm"
-	default:
-		return nil, fmt.Errorf("invalid EncryptionMode value: %v", em)
-	}
-
-	return json.Marshal(s)
+	return json.Marshal(em.String())
 }
 
 func (em *EncryptionMode) UnmarshalJSON(data []byte) error {
@@ -47,14 +37,14 @@ func (em *EncryptionMode) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &s)
 	if err != nil {
-		return fmt.Errorf("cannot decode EncryptionMode: %w", err)
+		return err
 	}
 
 	switch s {
 	case "gcm":
 		v = EncryptionModeGCM
 	default:
-		return fmt.Errorf("invalid EncryptionMode value: %v", s)
+		v = EncryptionModeUnknow
 	}
 
 	*em = v
