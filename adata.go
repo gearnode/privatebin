@@ -115,8 +115,8 @@ func (spec *Spec) UnmarshalJSON(data []byte) error {
 		encodedIv, encodedSalt       string
 		iv, salt                     []byte
 		iterations, keySize, tagSize int
-		encryptionAlgorithm          EncryptionAlgorithm
-		encryptionMode               EncryptionMode
+		algorithm                    EncryptionAlgorithm
+		mode                         EncryptionMode
 		compression                  CompressionAlgorithm
 	)
 
@@ -155,12 +155,12 @@ func (spec *Spec) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	err = json.Unmarshal(values[5], &encryptionAlgorithm)
+	err = json.Unmarshal(values[5], &algorithm)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(values[6], &encryptionMode)
+	err = json.Unmarshal(values[6], &mode)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (spec *Spec) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*spec = Spec{iv, salt, iterations, keySize, tagSize, encryptionAlgorithm, encryptionMode, compression}
+	*spec = Spec{iv, salt, iterations, keySize, tagSize, algorithm, mode, compression}
 
 	return nil
 }
