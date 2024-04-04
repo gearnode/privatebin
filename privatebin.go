@@ -39,11 +39,9 @@ import (
 const (
 	apiVersion = 2
 
-	iterations = 310_000
-	keySize    = 256
-	tagSize    = 128
-	algorithm  = "aes"
-	mode       = "gcm"
+	iterationCount = 600_000
+	keySize        = 256
+	tagSize        = 128
 )
 
 var (
@@ -299,7 +297,7 @@ func (c *Client) CreatePaste(
 
 	masterKeyWithPassword := append(masterKey, opts.Password...)
 
-	key := pbkdf2.Key(masterKeyWithPassword, salt, iterations, keySize/8, sha256.New)
+	key := pbkdf2.Key(masterKeyWithPassword, salt, iterationCount, keySize/8, sha256.New)
 
 	if opts.Compress == CompressionAlgorithmGZip {
 		var buf bytes.Buffer
