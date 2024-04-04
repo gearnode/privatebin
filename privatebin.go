@@ -254,9 +254,9 @@ func (c *Client) CreatePaste(
 	var paste Paste
 
 	if opts.AttachmentName != "" {
-		paste = Paste{nil, data, opts.AttachmentName}
+		paste = Paste{nil, data, opts.AttachmentName, ""}
 	} else {
-		paste = Paste{data, nil, ""}
+		paste = Paste{data, nil, "", ""}
 	}
 
 	pasteData, err := json.Marshal(&paste)

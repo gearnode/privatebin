@@ -17,9 +17,12 @@ package privatebin
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime"
+	"net/url"
 	"path/filepath"
+	"strings"
 )
 
 type (
@@ -27,6 +30,7 @@ type (
 		Data           []byte
 		Attachement    []byte
 		AttachmentName string
+		MimeType       string
 	}
 )
 
@@ -34,10 +38,13 @@ func (p Paste) MarshalJSON() ([]byte, error) {
 	output := map[string]string{}
 
 	if len(p.Attachement) > 0 {
-		ext := filepath.Ext(p.AttachmentName)
-		mimeType := mime.TypeByExtension(ext)
+		mimeType := p.MimeType
 		if mimeType == "" {
-			mimeType = "application/octet-stream"
+			ext := filepath.Ext(p.AttachmentName)
+			mimeType = mime.TypeByExtension(ext)
+			if p.MimeType == "" {
+				mimeType = "application/octet-stream"
+			}
 		}
 
 		if p.AttachmentName != "" {
@@ -65,10 +72,41 @@ func (p *Paste) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	var attachment []byte
+	var mimeType string
+	attachmentURL, ok := output["attachment"]
+	if ok {
+		parsedURL, err := url.Parse(attachmentURL)
+		if err != nil {
+			return fmt.Errorf("invalid attachment: error parsing url: %w", err)
+		}
+
+		parts := strings.Split(parsedURL.Opaque, ",")
+		if len(parts) != 2 {
+			return errors.New("invalid attachment: invalid data URL format")
+		}
+
+		if !strings.HasPrefix(parts[0], ";base64") {
+			return errors.New("invalid attachment: missing or invalid base64 encoding")
+		}
+
+		mimeType = strings.TrimPrefix(parts[0], ";base64")
+		if mimeType == "" {
+			mimeType = "application/octet-stream"
+		}
+
+		attachment, err = base64.StdEncoding.DecodeString(parts[1])
+		if err != nil {
+			return fmt.Errorf("invalid attachment: cannot base64 decode data: %w", err)
+		}
+
+	}
+
 	*p = Paste{
 		[]byte(output["paste"]),
-		[]byte(""),
+		attachment,
 		output["attachment_name"],
+		mimeType,
 	}
 
 	return nil
