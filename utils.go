@@ -15,6 +15,9 @@
 package privatebin
 
 import "crypto/rand"
+import (
+	"crypto/rand"
+	"encoding/base64"
 
 func btoi(v bool) int {
 	if v {
@@ -34,4 +37,12 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func decode64(s string) ([]byte, error) {
+	if len(s)%4 != 0 {
+		return base64.StdEncoding.DecodeString(s)
+	}
+
+	return base64.StdEncoding.DecodeString(s)
 }

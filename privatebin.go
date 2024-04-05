@@ -190,7 +190,7 @@ func (c *Client) ShowPaste(
 
 	masterKeyWithPassword := append(masterKey, opts.Password...)
 
-	encryptedCipherText, err := base64.RawStdEncoding.DecodeString(pasteResponse.CT)
+	encryptedCipherText, err := decode64(pasteResponse.CT)
 	if err != nil {
 		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
 	}
@@ -342,7 +342,7 @@ func (c *Client) CreatePaste(
 		V:     apiVersion,
 		AData: adata,
 		Meta:  createPasteRequestMeta{Expire: opts.Expire},
-		CT:    base64.RawStdEncoding.EncodeToString(cipherText),
+		CT:    base64.StdEncoding.EncodeToString(cipherText),
 	}
 
 	var reqBody bytes.Buffer

@@ -95,7 +95,7 @@ func (p *Paste) UnmarshalJSON(data []byte) error {
 			mimeType = "application/octet-stream"
 		}
 
-		attachment, err = base64.StdEncoding.DecodeString(parts[1])
+		attachment, err = decode64(parts[1])
 		if err != nil {
 			return fmt.Errorf("invalid attachment: cannot base64 decode data: %w", err)
 		}

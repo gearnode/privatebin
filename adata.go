@@ -91,8 +91,8 @@ func (adata *AData) UnmarshalJSON(data []byte) error {
 func (spec Spec) MarshalJSON() ([]byte, error) {
 	return json.Marshal(
 		[8]any{
-			base64.RawStdEncoding.EncodeToString(spec.IV),
-			base64.RawStdEncoding.EncodeToString(spec.Salt),
+			base64.StdEncoding.EncodeToString(spec.IV),
+			base64.StdEncoding.EncodeToString(spec.Salt),
 			spec.Iterations,
 			spec.KeySize,
 			spec.TagSize,
@@ -125,7 +125,7 @@ func (spec *Spec) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	iv, err = base64.RawStdEncoding.DecodeString(encodedIv)
+	iv, err = decode64(encodedIv)
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (spec *Spec) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	salt, err = base64.RawStdEncoding.DecodeString(encodedSalt)
+	salt, err = decode64(encodedSalt)
 	if err != nil {
 		return err
 	}
