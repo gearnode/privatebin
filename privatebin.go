@@ -221,7 +221,7 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("unsupported encryption mode: %q", pasteResponse.AData.Spec.Mode)
 	}
 
-	gcm, err := cipher.NewGCM(cipherBlock)
+	gcm, err := newGCMWithNonceAndTagSize(cipherBlock, len(pasteResponse.AData.Spec.IV), pasteResponse.AData.Spec.TagSize/8)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
 	}
