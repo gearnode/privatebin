@@ -110,7 +110,7 @@ func main() {
 	}
 
 	for k, v := range binCfg.ExtraHeaderFields {
-		clientOptions = append(clientOptions, privatebin.WithCustomerHeaderField(k, v))
+		clientOptions = append(clientOptions, privatebin.WithCustomHeaderField(k, v))
 	}
 
 	client := privatebin.NewClient(*uri, clientOptions...)

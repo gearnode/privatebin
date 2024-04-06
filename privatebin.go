@@ -131,7 +131,7 @@ func WithBasicAuth(username, password string) Option {
 	}
 }
 
-func WithCustomerHeaderField(k, v string) Option {
+func WithCustomHeaderField(k, v string) Option {
 	return func(c *Client) {
 		c.customHTTPHeaderFields[k] = v
 	}
