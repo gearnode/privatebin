@@ -42,11 +42,11 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 }
 
 func decode64(s string) ([]byte, error) {
-	if len(s)%4 != 0 {
+	if len(s)%4 == 0 {
 		return base64.StdEncoding.DecodeString(s)
 	}
 
-	return base64.StdEncoding.DecodeString(s)
+	return base64.RawStdEncoding.DecodeString(s)
 }
 
 // Golang standard library does not expose GCM with custom nonce and
