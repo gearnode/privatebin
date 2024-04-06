@@ -30,7 +30,6 @@ import (
 	"strconv"
 
 	"gearno.de/base58"
-	pv "gearno.de/privatebin/internal/version"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -40,10 +39,6 @@ const (
 	iterationCount = 600_000
 	keySize        = 256
 	tagSize        = 128
-)
-
-var (
-	userAgent = "privatebin-cli/" + pv.Version + " (source; https://github.com/gearnode/privatebin)"
 )
 
 type (
@@ -153,7 +148,6 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 		endpoint:               endpoint,
 		httpClient:             http.DefaultClient,
 		customHTTPHeaderFields: make(map[string]string),
-		userAgent:              userAgent,
 	}
 
 	for _, option := range options {
@@ -383,7 +377,10 @@ func (c *Client) CreatePaste(
 		req.Header.Set(k, v)
 	}
 
-	req.Header.Set("User-Agent", c.userAgent)
+	if c.userAgent != "" {
+		req.Header.Set("User-Agent", c.userAgent)
+	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Content-Length", strconv.Itoa(reqBody.Len()))
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")

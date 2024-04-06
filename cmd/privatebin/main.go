@@ -48,6 +48,10 @@ Commands:
 `
 )
 
+var (
+	userAgent = "privatebin-cli/" + pv.Version + " (source; https://github.com/gearnode/privatebin)"
+)
+
 func fail(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
 	os.Exit(1)
@@ -98,6 +102,7 @@ func main() {
 	}
 
 	clientOptions := []privatebin.Option{
+		privatebin.WithUserAgent(userAgent),
 		privatebin.WithBasicAuth(
 			binCfg.Auth.Username,
 			binCfg.Auth.Password,
