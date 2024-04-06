@@ -119,8 +119,8 @@ type (
 
 	Comment struct {
 		ID       string       `json:"id"`
-		PasteID  string       `json:"paste_id"`
-		ParentID string       `json:"parent_id"`
+		PasteID  string       `json:"pasteid"`
+		ParentID string       `json:"parentid"`
 		URL      string       `json:"url"`
 		V        int          `json:"v"`
 		CT       string       `json:"ct"`
