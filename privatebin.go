@@ -311,7 +311,6 @@ func (c *Client) CreatePaste(
 	}
 
 	masterKeyWithPassword := append(masterKey, opts.Password...)
-
 	key := pbkdf2.Key(masterKeyWithPassword, salt, iterationCount, keySize/8, sha256.New)
 
 	if opts.Compress == CompressionAlgorithmGZip {
