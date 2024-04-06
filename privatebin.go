@@ -113,7 +113,8 @@ type (
 	CommentAData = Spec
 
 	CommentMeta struct {
-		Icon string `json:"icon"`
+		Icon    string `json:"icon"`
+		Created int    `json:"created"`
 	}
 
 	Comment struct {
