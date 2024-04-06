@@ -28,23 +28,25 @@ type (
 	}
 
 	BinCfg struct {
-		Name             string  `json:"name"`
-		Host             string  `json:"host"`
-		Auth             AuthCfg `json:"auth"`
-		Expire           string  `json:"expire"`
-		OpenDiscussion   *bool   `json:"open_discussion"`
-		BurnAfterReading *bool   `json:"burn_after_reading"`
-		GZip             *bool   `json:"gzip"`
-		Formatter        string  `json:"formatter"`
+		Name              string            `json:"name"`
+		Host              string            `json:"host"`
+		Auth              AuthCfg           `json:"auth"`
+		Expire            string            `json:"expire"`
+		OpenDiscussion    *bool             `json:"open-discussion"`
+		BurnAfterReading  *bool             `json:"burn-after-reading"`
+		GZip              *bool             `json:"gzip"`
+		Formatter         string            `json:"formatter"`
+		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
 
 	Cfg struct {
-		Bin              []BinCfg `json:"bin"`
-		Expire           string   `json:"expire"`
-		OpenDiscussion   bool     `json:"open_discussion"`
-		BurnAfterReading bool     `json:"burn_after_reading"`
-		GZip             bool     `json:"gzip"`
-		Formatter        string   `json:"formatter"`
+		Bin               []BinCfg          `json:"bin"`
+		Expire            string            `json:"expire"`
+		OpenDiscussion    bool              `json:"open-discussion"`
+		BurnAfterReading  bool              `json:"burn-after-reading"`
+		GZip              bool              `json:"gzip"`
+		Formatter         string            `json:"formatter"`
+		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
 )
 
@@ -101,6 +103,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 
 		if binCfg.GZip == nil {
 			binCfg.GZip = &cfg.GZip
+		}
+
+		if binCfg.ExtraHeaderFields == nil {
+			binCfg.ExtraHeaderFields = cfg.ExtraHeaderFields
 		}
 
 		cfg.Bin[i] = binCfg

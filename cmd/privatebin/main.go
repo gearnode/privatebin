@@ -97,13 +97,18 @@ func main() {
 		fail("cannot parse %q bin %q host: %v", binCfg.Name, binCfg.Host, err)
 	}
 
-	client := privatebin.NewClient(
-		*uri,
+	clientOptions := []privatebin.Option{
 		privatebin.WithBasicAuth(
 			binCfg.Auth.Username,
 			binCfg.Auth.Password,
 		),
-	)
+	}
+
+	for k, v := range binCfg.ExtraHeaderFields {
+		clientOptions = append(clientOptions, privatebin.WithCustomerHeaderField(k, v))
+	}
+
+	client := privatebin.NewClient(*uri, clientOptions...)
 
 	if len(os.Args) == 1 {
 		fmt.Fprint(os.Stderr, helpMessage)
