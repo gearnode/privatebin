@@ -23,6 +23,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"gearno.de/privatebin"
 )
@@ -52,6 +53,27 @@ var (
 	userAgent  = "privatebin-cli/" + cliVersion + " (source; https://github.com/gearnode/privatebin)"
 )
 
+type (
+	headersValue map[string]string
+)
+
+func (h headersValue) String() string {
+	var headers []string
+	for key, value := range h {
+		headers = append(headers, fmt.Sprintf("%s=%s", key, value))
+	}
+	return strings.Join(headers, ", ")
+}
+
+func (h headersValue) Set(value string) error {
+	parts := strings.SplitN(value, "=", 2)
+	if len(parts) != 2 {
+		return fmt.Errorf("expected header in key=value format, got: '%s'", value)
+	}
+	h[parts[0]] = parts[1]
+	return nil
+}
+
 func fail(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
 	os.Exit(1)
@@ -60,6 +82,9 @@ func fail(format string, args ...interface{}) {
 func main() {
 	ctx := context.Background()
 
+	var extraHeaderFields headersValue = make(map[string]string)
+
+	flag.Var(extraHeaderFields, "extra-header-field", "add extra http header field in key=value format")
 	help := flag.Bool("help", false, "shows this help message")
 	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
 	binName := flag.String("bin", "", "the privatebin name to use")
@@ -94,6 +119,10 @@ func main() {
 	binCfg, err := findBinCfg(cfg, *binName)
 	if err != nil {
 		fail("%v", err)
+	}
+
+	for k, v := range extraHeaderFields {
+		binCfg.ExtraHeaderFields[k] = v
 	}
 
 	uri, err := url.Parse(binCfg.Host)
