@@ -59,10 +59,8 @@ func decode64(s string) ([]byte, error) {
 // - https://github.com/golang/go/issues/42470
 
 const (
-	gcmBlockSize         = 16
-	gcmTagSize           = 16
-	gcmMinimumTagSize    = 12 // NIST SP 800-38D recommends tags with 12 or more bytes.
-	gcmStandardNonceSize = 12
+	gcmBlockSize      = 16
+	gcmMinimumTagSize = 12 // NIST SP 800-38D recommends tags with 12 or more bytes.
 )
 
 type gcmAble interface {
