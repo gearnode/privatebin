@@ -19,6 +19,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"net"
+	"net/http"
+	"runtime"
+	"time"
 )
 
 func btoi(v bool) int {
@@ -47,6 +51,27 @@ func decode64(s string) ([]byte, error) {
 	}
 
 	return base64.RawStdEncoding.DecodeString(s)
+}
+
+func defaultPooledClient() *http.Client {
+	dial := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}
+
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dial.DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+	}
+
+	return &http.Client{Transport: transport}
 }
 
 // Golang standard library does not expose GCM with custom nonce and

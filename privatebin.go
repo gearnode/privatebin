@@ -146,7 +146,7 @@ func WithUserAgent(userAgent string) Option {
 func NewClient(endpoint url.URL, options ...Option) *Client {
 	client := &Client{
 		endpoint:               endpoint,
-		httpClient:             http.DefaultClient,
+		httpClient:             defaultPooledClient(),
 		customHTTPHeaderFields: make(map[string]string),
 	}
 
