@@ -25,7 +25,6 @@ import (
 	"path/filepath"
 
 	"gearno.de/privatebin"
-	pv "gearno.de/privatebin/internal/version"
 )
 
 const (
@@ -49,7 +48,8 @@ Commands:
 )
 
 var (
-	userAgent = "privatebin-cli/" + pv.Version + " (source; https://github.com/gearnode/privatebin)"
+	cliVersion = "dev"
+	userAgent  = "privatebin-cli/" + cliVersion + " (source; https://github.com/gearnode/privatebin)"
 )
 
 func fail(format string, args ...interface{}) {
@@ -73,7 +73,7 @@ func main() {
 	}
 
 	if *version {
-		fmt.Fprintf(os.Stdout, "privatebin cli version %s\n", pv.Version)
+		fmt.Fprintf(os.Stdout, "privatebin cli version %s\n", cliVersion)
 		os.Exit(1)
 	}
 

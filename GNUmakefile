@@ -10,7 +10,7 @@ RM = rm -f
 
 DATETIME = "Jan 08, 2023"
 VERSION = 1.4.0
-LDFLAGS = -ldflags "-X 'gearno.de/privatebin/internal/version.Version=$(VERSION)'"
+LDFLAGS = -ldflags "-X 'main.cliVersion=$(VERSION)'"
 
 BIN = bin/privatebin
 
