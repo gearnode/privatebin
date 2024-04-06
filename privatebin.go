@@ -104,10 +104,27 @@ type (
 		AData         AData                `json:"adata"`
 		Meta          showPasteRequestMeta `json:"meta"`
 		CT            string               `json:"ct"`
-		Comments      []any                `json:"comments"`
+		Comments      []Comment            `json:"comments"`
 		CommentCount  int                  `json:"comment_count"`
 		CommentOffset int                  `json:"comment_offset"`
 		Context       string               `json:"@context"`
+	}
+
+	CommentAData = Spec
+
+	CommentMeta struct {
+		Icon string `json:"icon"`
+	}
+
+	Comment struct {
+		ID       string       `json:"id"`
+		PasteID  string       `json:"paste_id"`
+		ParentID string       `json:"parent_id"`
+		URL      string       `json:"url"`
+		V        int          `json:"v"`
+		CT       string       `json:"ct"`
+		AData    CommentAData `json:"adata"`
+		Meta     CommentMeta  `json:"meta"`
 	}
 )
 
