@@ -220,22 +220,33 @@ func (c *Client) ShowPaste(
 		sha256.New,
 	)
 
-	if pasteResponse.AData.Spec.Algorithm != EncryptionAlgorithmAES {
+	var (
+		cipherBlock cipher.Block
+		gcm         cipher.AEAD
+	)
+
+	switch pasteResponse.AData.Spec.Algorithm {
+	case EncryptionAlgorithmAES:
+		cipherBlock, err = aes.NewCipher(key)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new cipher: %w", err)
+		}
+	default:
 		return nil, fmt.Errorf("unsupported encryption algorithm: %q", pasteResponse.AData.Spec.Algorithm)
 	}
 
-	cipherBlock, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create new cipher: %w", err)
-	}
-
-	if pasteResponse.AData.Spec.Mode != EncryptionModeGCM {
+	switch pasteResponse.AData.Spec.Mode {
+	case EncryptionModeGCM:
+		gcm, err = newGCMWithNonceAndTagSize(
+			cipherBlock,
+			len(pasteResponse.AData.Spec.IV),
+			pasteResponse.AData.Spec.TagSize/8,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
+		}
+	default:
 		return nil, fmt.Errorf("unsupported encryption mode: %q", pasteResponse.AData.Spec.Mode)
-	}
-
-	gcm, err := newGCMWithNonceAndTagSize(cipherBlock, len(pasteResponse.AData.Spec.IV), pasteResponse.AData.Spec.TagSize/8)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
 	}
 
 	cipherText, err := gcm.Open(nil, pasteResponse.AData.Spec.IV, encryptedCipherText, authData)
@@ -243,7 +254,9 @@ func (c *Client) ShowPaste(
 		return nil, err
 	}
 
-	if pasteResponse.AData.Spec.Compression == CompressionAlgorithmGZip {
+	switch pasteResponse.AData.Spec.Compression {
+	case CompressionAlgorithmNone:
+	case CompressionAlgorithmGZip:
 		buf := bytes.NewBuffer(cipherText)
 		fr := flate.NewReader(buf)
 		defer fr.Close()
@@ -251,6 +264,8 @@ func (c *Client) ShowPaste(
 		if err != nil {
 			return nil, fmt.Errorf("cannot read gzip: %w", err)
 		}
+	default:
+		return nil, fmt.Errorf("unsupported compression mode: %q", pasteResponse.AData.Spec.Compression)
 	}
 
 	var paste Paste
