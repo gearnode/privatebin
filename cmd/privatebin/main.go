@@ -215,12 +215,12 @@ var (
 				options.Compress = privatebin.CompressionAlgorithmGZip
 			}
 
-			resp, err := client.CreatePaste(ctx, data, options)
+			result, err := client.CreatePaste(ctx, data, options)
 			if err != nil {
 				return fmt.Errorf("cannot create the paste: %w", err)
 			}
 
-			fmt.Printf("%s\n", resp)
+			fmt.Printf("%s\n", result.PasteURL.String())
 			return nil
 		},
 	}

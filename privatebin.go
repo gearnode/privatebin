@@ -69,6 +69,12 @@ type (
 		ConfirmBurn bool
 	}
 
+	CreatePasteResult struct {
+		PasteID     string
+		PasteURL    url.URL
+		DeleteToken string
+	}
+
 	createPasteRequest struct {
 		V     int                    `json:"v"`
 		AData AData                  `json:"adata"`
@@ -297,7 +303,7 @@ func (c *Client) CreatePaste(
 	ctx context.Context,
 	data []byte,
 	opts CreatePasteOptions,
-) (string, error) {
+) (*CreatePasteResult, error) {
 	var paste Paste
 
 	if opts.AttachmentName != "" {
@@ -308,22 +314,22 @@ func (c *Client) CreatePaste(
 
 	pasteData, err := json.Marshal(&paste)
 	if err != nil {
-		return "", fmt.Errorf("cannot json marshal paste content: %w", err)
+		return nil, fmt.Errorf("cannot json marshal paste content: %w", err)
 	}
 
 	masterKey, err := generateRandomBytes(32)
 	if err != nil {
-		return "", fmt.Errorf("cannot generate random bytes: %w", err)
+		return nil, fmt.Errorf("cannot generate random bytes: %w", err)
 	}
 
 	iv, err := generateRandomBytes(12)
 	if err != nil {
-		return "", fmt.Errorf("cannot generate iv: %w", err)
+		return nil, fmt.Errorf("cannot generate iv: %w", err)
 	}
 
 	salt, err := generateRandomBytes(8)
 	if err != nil {
-		return "", fmt.Errorf("cannot generate salt: %w", err)
+		return nil, fmt.Errorf("cannot generate salt: %w", err)
 	}
 
 	masterKeyWithPassword := append(masterKey, opts.Password...)
@@ -333,15 +339,15 @@ func (c *Client) CreatePaste(
 		var buf bytes.Buffer
 		fw, err := flate.NewWriter(&buf, flate.BestCompression)
 		if err != nil {
-			return "", fmt.Errorf("cannot create new flate writer: %w", err)
+			return nil, fmt.Errorf("cannot create new flate writer: %w", err)
 		}
 
 		if _, err := fw.Write(pasteData); err != nil {
-			return "", fmt.Errorf("cannot write in flate buf: %w", err)
+			return nil, fmt.Errorf("cannot write in flate buf: %w", err)
 		}
 
 		if err := fw.Close(); err != nil {
-			return "", fmt.Errorf("cannot close flate writer: %w", err)
+			return nil, fmt.Errorf("cannot close flate writer: %w", err)
 		}
 
 		pasteData = buf.Bytes()
@@ -365,17 +371,17 @@ func (c *Client) CreatePaste(
 
 	authData, err := json.Marshal(adata)
 	if err != nil {
-		return "", fmt.Errorf("cannot encode adata: %w", err)
+		return nil, fmt.Errorf("cannot encode adata: %w", err)
 	}
 
 	cipherBlock, err := aes.NewCipher(key)
 	if err != nil {
-		return "", fmt.Errorf("cannot create new cipher: %w", err)
+		return nil, fmt.Errorf("cannot create new cipher: %w", err)
 	}
 
 	gcm, err := cipher.NewGCM(cipherBlock)
 	if err != nil {
-		return "", fmt.Errorf("cannot create new galois counter mode: %w", err)
+		return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
 	}
 
 	cipherText := gcm.Seal(nil, iv, pasteData, authData)
@@ -390,7 +396,7 @@ func (c *Client) CreatePaste(
 	var reqBody bytes.Buffer
 	err = json.NewEncoder(&reqBody).Encode(createPasteReq)
 	if err != nil {
-		return "", fmt.Errorf("cannot marshal paste request: %w", err)
+		return nil, fmt.Errorf("cannot marshal paste request: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(
@@ -400,7 +406,7 @@ func (c *Client) CreatePaste(
 		&reqBody,
 	)
 	if err != nil {
-		return "", fmt.Errorf("cannot create request: %w", err)
+		return nil, fmt.Errorf("cannot create request: %w", err)
 	}
 
 	for k, v := range c.customHTTPHeaderFields {
@@ -421,23 +427,23 @@ func (c *Client) CreatePaste(
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("cannot execute http request: %w", err)
+		return nil, fmt.Errorf("cannot execute http request: %w", err)
 	}
 	defer res.Body.Close()
 
 	pasteResponse := createPasteResponse{}
 	err = json.NewDecoder(res.Body).Decode(&pasteResponse)
 	if err != nil {
-		return "", fmt.Errorf("cannot decode response body: %w", err)
+		return nil, fmt.Errorf("cannot decode response body: %w", err)
 	}
 
 	if pasteResponse.Status != 0 {
-		return "", fmt.Errorf("cannot create paste: server respond with %d status: %s", pasteResponse.Status, pasteResponse.Message)
+		return nil, fmt.Errorf("cannot create paste: server respond with %d status: %s", pasteResponse.Status, pasteResponse.Message)
 	}
 
 	pasteID, err := url.Parse(pasteResponse.URL)
 	if err != nil {
-		return "", fmt.Errorf("cannot parse paste url: %w", err)
+		return nil, fmt.Errorf("cannot parse paste url: %w", err)
 	}
 
 	fragment := base58.Encode(masterKey)
@@ -453,5 +459,9 @@ func (c *Client) CreatePaste(
 		Fragment: fragment,
 	}
 
-	return pasteLink.String(), nil
+	return &CreatePasteResult{
+		PasteID:     pasteResponse.ID,
+		PasteURL:    pasteLink,
+		DeleteToken: pasteResponse.DeleteToken,
+	}, nil
 }
