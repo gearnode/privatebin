@@ -16,6 +16,7 @@ package main // import "gearno.de/cmd/privatebin"
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -37,6 +38,7 @@ var (
 	extraHeaderFields []string
 	client            *privatebin.Client
 	binCfg            *BinCfg
+	output            string
 
 	ctx           = context.Background()
 	clientOptions = []privatebin.Option{
@@ -60,6 +62,14 @@ var (
 		Version: fmt.Sprintf("v%s", cliVersion),
 		Short:   "TODO",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+
+			switch output {
+			case "":
+			case "json":
+			default:
+				return fmt.Errorf("invalid output: %q, valid options are '', 'json'", output)
+			}
+
 			if cfgPath == "" {
 				homeDir, err := os.UserHomeDir()
 				if err != nil {
@@ -220,13 +230,24 @@ var (
 				return fmt.Errorf("cannot create the paste: %w", err)
 			}
 
-			fmt.Printf("%s\n", result.PasteURL.String())
+			switch output {
+			case "":
+				fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
+			case "json":
+				json.NewEncoder(os.Stdout).Encode(map[string]any{
+					"paste_id":     result.PasteID,
+					"paste_url":    result.PasteURL.String(),
+					"delete_token": result.DeleteToken,
+				})
+			}
+
 			return nil
 		},
 	}
 )
 
 func init() {
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "")
 	rootCmd.Flags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
 	rootCmd.Flags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
 	rootCmd.Flags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
