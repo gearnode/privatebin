@@ -1,0 +1,65 @@
+version: 1
+
+before:
+  hooks:
+    - "make man"
+    - "go mod vendor"
+
+report_sizes: true
+    
+builds:
+  - id: "privatebin"
+    env:
+      - "CGO_ENABLED=0"
+      - "GO111MODULE=on"
+    main: "./cmd/privatebin"
+    binary: "privatebin"
+    goos:
+      - "linux"
+      - "darwin"
+      - "freebsd"
+      - "openbsd"
+    goarch:
+      - "amd64"
+      - "arm"
+      - "arm64"
+    goarm:
+      - "6"
+      - "7"
+    flags:
+      - "-trimpath"
+      - "-mod=readonly"
+    ldflags:
+      - "-s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}"
+
+release:
+  github:
+    owner: "gearnode"
+    name: "privatebin"
+  draft: true
+  prerelease: "auto"
+  
+archives:
+  - format: "tar.gz"
+    format_overrides:
+      - goos: "windows"
+        format: "zip"
+    files:
+      - "LICENSE.txt"
+      - "README.md"
+
+source:
+  enabled: true
+  name_template: "{{ .Tag }}-source"
+  format: "tar.gz"
+  files:
+    - "vendor"
+    - "man"
+
+checksum:
+  algorithm: "sha512"
+
+changelog:
+  disable: true
+
+
