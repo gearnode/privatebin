@@ -79,6 +79,15 @@ type (
 		PasteID      string
 		CommentCount int
 		Paste        Paste
+		Comments     []Comment
+	}
+
+	Comment struct {
+		CommentID string
+		PasteID   string
+		ParentID  string
+		Nickname  string
+		Text      string
 	}
 
 	createPasteRequest struct {
@@ -106,36 +115,34 @@ type (
 	}
 
 	showPasteResponse struct {
-		Status        int                  `json:"status"`
-		Message       string               `json:"message"`
-		ID            string               `json:"id"`
-		URL           string               `json:"url"`
-		V             int                  `json:"v"`
-		AData         AData                `json:"adata"`
-		Meta          showPasteRequestMeta `json:"meta"`
-		CT            string               `json:"ct"`
-		Comments      []Comment            `json:"comments"`
-		CommentCount  int                  `json:"comment_count"`
-		CommentOffset int                  `json:"comment_offset"`
-		Context       string               `json:"@context"`
+		Status        int                        `json:"status"`
+		Message       string                     `json:"message"`
+		ID            string                     `json:"id"`
+		URL           string                     `json:"url"`
+		V             int                        `json:"v"`
+		AData         AData                      `json:"adata"`
+		Meta          showPasteRequestMeta       `json:"meta"`
+		CT            string                     `json:"ct"`
+		Comments      []showPasteResponseComment `json:"comments"`
+		CommentCount  int                        `json:"comment_count"`
+		CommentOffset int                        `json:"comment_offset"`
+		Context       string                     `json:"@context"`
 	}
 
-	CommentAData = Spec
-
-	CommentMeta struct {
+	showPasteResponseCommentMeta struct {
 		Icon    string `json:"icon"`
 		Created int    `json:"created"`
 	}
 
-	Comment struct {
-		ID       string       `json:"id"`
-		PasteID  string       `json:"pasteid"`
-		ParentID string       `json:"parentid"`
-		URL      string       `json:"url"`
-		V        int          `json:"v"`
-		CT       string       `json:"ct"`
-		AData    CommentAData `json:"adata"`
-		Meta     CommentMeta  `json:"meta"`
+	showPasteResponseComment struct {
+		ID       string                       `json:"id"`
+		PasteID  string                       `json:"pasteid"`
+		ParentID string                       `json:"parentid"`
+		URL      string                       `json:"url"`
+		V        int                          `json:"v"`
+		CT       string                       `json:"ct"`
+		AData    Spec                         `json:"adata"`
+		Meta     showPasteResponseCommentMeta `json:"meta"`
 	}
 )
 
@@ -170,6 +177,71 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 	}
 
 	return client
+}
+
+func decrypt(masterKey []byte, ct string, adata []byte, spec Spec) ([]byte, error) {
+	encryptedCipherText, err := decode64(ct)
+	if err != nil {
+		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
+	}
+
+	key := pbkdf2.Key(
+		masterKey,
+		spec.Salt,
+		spec.Iterations,
+		spec.KeySize/8,
+		sha256.New,
+	)
+
+	var (
+		cipherBlock cipher.Block
+		gcm         cipher.AEAD
+	)
+
+	switch spec.Algorithm {
+	case EncryptionAlgorithmAES:
+		cipherBlock, err = aes.NewCipher(key)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new cipher: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec.Algorithm)
+	}
+
+	switch spec.Mode {
+	case EncryptionModeGCM:
+		gcm, err = newGCMWithNonceAndTagSize(
+			cipherBlock,
+			len(spec.IV),
+			spec.TagSize/8,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported encryption mode: %q", spec.Mode)
+	}
+
+	cipherText, err := gcm.Open(nil, spec.IV, encryptedCipherText, adata)
+	if err != nil {
+		return nil, err
+	}
+
+	switch spec.Compression {
+	case CompressionAlgorithmNone:
+	case CompressionAlgorithmGZip:
+		buf := bytes.NewBuffer(cipherText)
+		fr := flate.NewReader(buf)
+		defer fr.Close()
+		cipherText, err = io.ReadAll(fr)
+		if err != nil {
+			return nil, fmt.Errorf("cannot read gzip: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported compression mode: %q", spec.Compression)
+	}
+
+	return cipherText, nil
 }
 
 func (c *Client) ShowPaste(
@@ -228,72 +300,15 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot load paste: server respond with %d status: %s", pasteResponse.Status, pasteResponse.Message)
 	}
 
-	masterKeyWithPassword := append(masterKey, opts.Password...)
-
-	encryptedCipherText, err := decode64(pasteResponse.CT)
-	if err != nil {
-		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
-	}
-
 	authData, err := json.Marshal(pasteResponse.AData)
 	if err != nil {
 		return nil, fmt.Errorf("cannot encode adata: %w", err)
 	}
 
-	key := pbkdf2.Key(
-		masterKeyWithPassword,
-		pasteResponse.AData.Spec.Salt,
-		pasteResponse.AData.Spec.Iterations,
-		pasteResponse.AData.Spec.KeySize/8,
-		sha256.New,
-	)
-
-	var (
-		cipherBlock cipher.Block
-		gcm         cipher.AEAD
-	)
-
-	switch pasteResponse.AData.Spec.Algorithm {
-	case EncryptionAlgorithmAES:
-		cipherBlock, err = aes.NewCipher(key)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create new cipher: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported encryption algorithm: %q", pasteResponse.AData.Spec.Algorithm)
-	}
-
-	switch pasteResponse.AData.Spec.Mode {
-	case EncryptionModeGCM:
-		gcm, err = newGCMWithNonceAndTagSize(
-			cipherBlock,
-			len(pasteResponse.AData.Spec.IV),
-			pasteResponse.AData.Spec.TagSize/8,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported encryption mode: %q", pasteResponse.AData.Spec.Mode)
-	}
-
-	cipherText, err := gcm.Open(nil, pasteResponse.AData.Spec.IV, encryptedCipherText, authData)
+	masterKeyWithPassword := append(masterKey, opts.Password...)
+	cipherText, err := decrypt(masterKeyWithPassword, pasteResponse.CT, authData, pasteResponse.AData.Spec)
 	if err != nil {
-		return nil, err
-	}
-
-	switch pasteResponse.AData.Spec.Compression {
-	case CompressionAlgorithmNone:
-	case CompressionAlgorithmGZip:
-		buf := bytes.NewBuffer(cipherText)
-		fr := flate.NewReader(buf)
-		defer fr.Close()
-		cipherText, err = io.ReadAll(fr)
-		if err != nil {
-			return nil, fmt.Errorf("cannot read gzip: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported compression mode: %q", pasteResponse.AData.Spec.Compression)
+		return nil, fmt.Errorf("cannot decrypt data: %w", err)
 	}
 
 	var paste Paste
@@ -302,10 +317,42 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot unmarshal paste content: %w", err)
 	}
 
+	var comments []Comment
+	for i, comment := range pasteResponse.Comments {
+		authData, err := json.Marshal(comment.AData)
+		if err != nil {
+			return nil, fmt.Errorf("cannot encode comment (#%d) adata: %w", i, err)
+		}
+
+		data, err := decrypt(masterKeyWithPassword, comment.CT, authData, comment.AData)
+		if err != nil {
+			return nil, fmt.Errorf("cannot decrypt comment (#%d): %w", i, err)
+		}
+
+		var message map[string]string
+		err = json.Unmarshal(data, &message)
+		if err != nil {
+			return nil, fmt.Errorf("cannot decode comment (#%d): %w", i, err)
+		}
+
+		comments = append(
+			comments,
+			Comment{
+				CommentID: comment.ID,
+				PasteID:   comment.PasteID,
+				ParentID:  comment.ParentID,
+				Nickname:  message["nickname"],
+				Text:      message["comment"],
+			},
+		)
+
+	}
+
 	return &ShowPasteResult{
 		PasteID:      pasteResponse.ID,
 		CommentCount: pasteResponse.CommentCount,
 		Paste:        paste,
+		Comments:     comments,
 	}, nil
 }
 

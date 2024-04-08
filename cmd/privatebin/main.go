@@ -160,10 +160,27 @@ var (
 			case "":
 				fmt.Fprintf(os.Stdout, "%s\n", result.Paste.Data)
 			case "json":
-				json.NewEncoder(os.Stdout).Encode(map[string]any{
-					"paste_id":      result.PasteID,
-					"comment_count": result.CommentCount,
-				})
+				var comments []map[string]string
+				for _, comment := range result.Comments {
+					comments = append(
+						comments,
+						map[string]string{
+							"comment_id": comment.CommentID,
+							"paste_id":   comment.PasteID,
+							"parent_id":  comment.ParentID,
+							"nickname":   comment.Nickname,
+							"text":       comment.Text,
+						},
+					)
+				}
+
+				json.NewEncoder(os.Stdout).Encode(
+					map[string]any{
+						"paste_id":      result.PasteID,
+						"comment_count": result.CommentCount,
+						"comments":      comments,
+					},
+				)
 			}
 			return nil
 		},
@@ -248,11 +265,13 @@ var (
 			case "":
 				fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
 			case "json":
-				json.NewEncoder(os.Stdout).Encode(map[string]any{
-					"paste_id":     result.PasteID,
-					"paste_url":    result.PasteURL.String(),
-					"delete_token": result.DeleteToken,
-				})
+				json.NewEncoder(os.Stdout).Encode(
+					map[string]any{
+						"paste_id":     result.PasteID,
+						"paste_url":    result.PasteURL.String(),
+						"delete_token": result.DeleteToken,
+					},
+				)
 			}
 
 			return nil
