@@ -150,7 +150,15 @@ var (
 				return fmt.Errorf("cannot show paste: %w", err)
 			}
 
-			fmt.Printf("%s\n", result.Paste.Data)
+			switch output {
+			case "":
+				fmt.Fprintf(os.Stdout, "%s\n", result.Paste.Data)
+			case "json":
+				json.NewEncoder(os.Stdout).Encode(map[string]any{
+					"paste_id":      result.PasteID,
+					"comment_count": result.CommentCount,
+				})
+			}
 			return nil
 		},
 	}
