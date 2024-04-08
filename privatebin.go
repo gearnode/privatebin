@@ -95,6 +95,7 @@ type (
 
 	showPasteResponse struct {
 		Status        int                  `json:"status"`
+		Message       string               `json:"message"`
 		ID            string               `json:"id"`
 		URL           string               `json:"url"`
 		V             int                  `json:"v"`
