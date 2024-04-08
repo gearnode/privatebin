@@ -33,7 +33,7 @@ import (
 
 var (
 	cliVersion        = "dev"
-	userAgent         = "privatebin-cli/" + cliVersion + " (source; https://github.com/gearnode/privatebin)"
+	userAgent         = "privatebin-cli/" + cliVersion + " (source; https://go.gearno.de/privatebin)"
 	cfgPath           string
 	binName           string
 	extraHeaderFields []string
