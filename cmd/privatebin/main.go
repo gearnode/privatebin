@@ -16,6 +16,7 @@ package main // import "gearno.de/cmd/privatebin"
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -176,7 +177,12 @@ var (
 
 				json.NewEncoder(os.Stdout).Encode(
 					map[string]any{
-						"paste_id":      result.PasteID,
+						"paste_id": result.PasteID,
+						"paste": map[string]string{
+							"attachment_name": result.Paste.AttachmentName,
+							"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachement),
+							"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
+						},
 						"comment_count": result.CommentCount,
 						"comments":      comments,
 					},
