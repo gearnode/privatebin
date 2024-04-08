@@ -52,9 +52,10 @@ type (
 
 func defaultConfig() *Cfg {
 	return &Cfg{
-		Expire:    "1day",
-		Formatter: "plaintext",
-		GZip:      true,
+		Expire:            "1day",
+		Formatter:         "plaintext",
+		GZip:              true,
+		ExtraHeaderFields: make(map[string]string),
 	}
 }
 

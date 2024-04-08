@@ -16,7 +16,6 @@ package main // import "gearno.de/cmd/privatebin"
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io"
 	"net/url"
@@ -25,258 +24,229 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"gearno.de/privatebin"
 )
 
-const (
-	helpMessage = `Usage of bin/privatebin:
-  -bin string
-        the privatebin name to use
-  -cfg-file string
-        the path of the configuration file (default "~/.config/privatebin/config.json")
-  -help
-        shows this help message
-  -version
-        prints the privatebin cli version
-
-Commands:
-  create [-attachment] [-burn-after-reading] [-expire=<value>] [-filename=<value>] [-formatter=<value>] [-gzip] [-open-discussion] [-password=<value>]
-        Create a new paste.
-
-  show [-insecure] [-password=<value>]
-        Show a paste content.
-`
-)
-
 var (
-	cliVersion = "dev"
-	userAgent  = "privatebin-cli/" + cliVersion + " (source; https://github.com/gearnode/privatebin)"
+	cliVersion        = "dev"
+	userAgent         = "privatebin-cli/" + cliVersion + " (source; https://github.com/gearnode/privatebin)"
+	cfgPath           string
+	binName           string
+	extraHeaderFields []string
+	client            *privatebin.Client
+	binCfg            *BinCfg
+
+	ctx           = context.Background()
+	clientOptions = []privatebin.Option{
+
+		privatebin.WithUserAgent(userAgent),
+	}
+
+	expire           string
+	openDiscussion   bool
+	burnAfterReading bool
+	gzip             bool
+	formatter        string
+	password         string
+	filename         string
+	attachment       bool
+
+	insecure bool
+	confirm  bool
+
+	rootCmd = &cobra.Command{
+		Use:     "privatebin",
+		Version: fmt.Sprintf("v%s", cliVersion),
+		Short:   "TODO",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if cfgPath == "" {
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					return fmt.Errorf("cannot get user home directory: %w", err)
+				}
+
+				cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+			}
+
+			cfg, err := loadCfgFile(cfgPath)
+			if err != nil {
+				return fmt.Errorf("cannot load configuration: %w", err)
+			}
+
+			binCfg, err = findBinCfg(cfg, binName)
+			if err != nil {
+				return fmt.Errorf("cannot find %q bin configuration: %w", binName, err)
+			}
+
+			clientOptions = append(
+				clientOptions,
+				privatebin.WithBasicAuth(
+					binCfg.Auth.Username,
+					binCfg.Auth.Password,
+				),
+			)
+
+			for k, v := range binCfg.ExtraHeaderFields {
+				clientOptions = append(
+					clientOptions,
+					privatebin.WithCustomHeaderField(k, v),
+				)
+			}
+
+			for _, value := range extraHeaderFields {
+				parts := strings.SplitN(value, ":", 2)
+				if len(parts) != 2 {
+					return fmt.Errorf("invalid header field format: '%s', expected 'key: value'", value)
+				}
+
+				clientOptions = append(
+					clientOptions,
+					privatebin.WithCustomHeaderField(
+						strings.TrimSpace(parts[0]),
+						strings.TrimSpace(parts[1]),
+					),
+				)
+			}
+
+			host, err := url.Parse(binCfg.Host)
+			if err != nil {
+				return fmt.Errorf("cannot parse %q bin %q host: %w", binCfg.Name, binCfg.Host, err)
+			}
+
+			client = privatebin.NewClient(*host, clientOptions...)
+			return nil
+		},
+	}
+
+	showCmd = &cobra.Command{
+		Use:          "show",
+		Short:        "Show a paste",
+		SilenceUsage: true,
+		Args:         cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			link, err := url.Parse(args[0])
+			if err != nil {
+				return fmt.Errorf("cannot parse paste url: %w", err)
+			}
+
+			options := privatebin.ShowPasteOptions{
+				Password: []byte(password),
+			}
+
+			resp, err := client.ShowPaste(ctx, *link, options)
+			if err != nil {
+				return fmt.Errorf("cannot show paste: %w", err)
+			}
+
+			fmt.Printf("%s\n", string(resp.Attachement))
+			return nil
+		},
+	}
+
+	createCmd = &cobra.Command{
+		Use:          "create",
+		Short:        "Create a paste",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("expire") {
+				binCfg.Expire = expire
+			}
+
+			if cmd.Flags().Changed("open-discussion") {
+				binCfg.OpenDiscussion = &openDiscussion
+			}
+
+			if cmd.Flags().Changed("burn-after-reading") {
+				binCfg.BurnAfterReading = &burnAfterReading
+			}
+
+			if cmd.Flags().Changed("gzip") {
+				binCfg.GZip = &gzip
+			}
+
+			if cmd.Flags().Changed("formatter") {
+				binCfg.Formatter = formatter
+			}
+
+			var (
+				attachementName string
+				data            []byte
+				err             error
+			)
+
+			if cmd.Flags().Changed("filename") {
+				file, err := os.Open(filename)
+				if err != nil {
+					return fmt.Errorf("cannot open %q file: %w", filename, err)
+				}
+
+				data, err = io.ReadAll(file)
+				if err != nil {
+					return fmt.Errorf("cannot read %q file: %w", filename, err)
+				}
+
+				if cmd.Flags().Changed("attachment") {
+					attachementName = filepath.Base(filename)
+				}
+			} else {
+				data, err = io.ReadAll(os.Stdin)
+				if err != nil {
+					return fmt.Errorf("cannot read stdin: %w", err)
+				}
+
+				if cmd.Flags().Changed("attachment") {
+					attachementName = "stdin"
+				}
+			}
+
+			options := privatebin.CreatePasteOptions{
+				AttachmentName:   attachementName,
+				Formatter:        binCfg.Formatter,
+				Expire:           binCfg.Expire,
+				OpenDiscussion:   *binCfg.OpenDiscussion,
+				BurnAfterReading: *binCfg.BurnAfterReading,
+				Password:         []byte(password),
+				Compress:         privatebin.CompressionAlgorithmNone,
+			}
+
+			if *binCfg.GZip {
+				options.Compress = privatebin.CompressionAlgorithmGZip
+			}
+
+			resp, err := client.CreatePaste(ctx, data, options)
+			if err != nil {
+				return fmt.Errorf("cannot create the paste: %w", err)
+			}
+
+			fmt.Printf("%s\n", resp)
+			return nil
+		},
+	}
 )
 
-type (
-	headersValue map[string]string
-)
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
+	rootCmd.PersistentFlags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
+	rootCmd.PersistentFlags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
 
-func (h headersValue) String() string {
-	var headers []string
-	for key, value := range h {
-		headers = append(headers, fmt.Sprintf("%s=%s", key, value))
-	}
-	return strings.Join(headers, ", ")
-}
+	createCmd.Flags().StringVar(&expire, "expire", "", "the time to live of the paste")
+	createCmd.Flags().BoolVar(&openDiscussion, "open-discussion", false, "enable discussion on the paste")
+	createCmd.Flags().BoolVar(&burnAfterReading, "burn-after-reading", false, "delete the paste after reading")
+	createCmd.Flags().BoolVar(&gzip, "gzip", true, "gzip the paste data")
+	createCmd.Flags().StringVar(&formatter, "formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
+	createCmd.Flags().StringVar(&password, "password", "", "the paste password")
+	createCmd.Flags().StringVar(&filename, "filename", "", "read filepath instead of stdin")
+	createCmd.Flags().BoolVar(&attachment, "attachment", false, "create the paste as an attachment")
 
-func (h headersValue) Set(value string) error {
-	parts := strings.SplitN(value, "=", 2)
-	if len(parts) != 2 {
-		return fmt.Errorf("expected header in key=value format, got: '%s'", value)
-	}
-	h[parts[0]] = parts[1]
-	return nil
-}
+	showCmd.Flags().BoolVar(&insecure, "insecure", false, "")
+	showCmd.Flags().BoolVar(&confirm, "confirm", false, "")
+	showCmd.Flags().StringVar(&password, "password", "", "the paste password")
 
-func fail(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
-	os.Exit(1)
+	rootCmd.AddCommand(showCmd, createCmd)
 }
 
 func main() {
-	ctx := context.Background()
-
-	var extraHeaderFields headersValue = make(map[string]string)
-
-	flag.Var(extraHeaderFields, "extra-header-field", "add extra http header field in key=value format")
-	help := flag.Bool("help", false, "shows this help message")
-	cfgPath := flag.String("cfg-file", "", "the path of the configuration file (default \"~/.config/privatebin/config.json\")")
-	binName := flag.String("bin", "", "the privatebin name to use")
-	version := flag.Bool("version", false, "prints the privatebin cli version")
-
-	flag.Parse()
-
-	if *help {
-		fmt.Fprint(os.Stdout, helpMessage)
-		os.Exit(0)
-	}
-
-	if *version {
-		fmt.Fprintf(os.Stdout, "privatebin cli version %s\n", cliVersion)
-		os.Exit(1)
-	}
-
-	if *cfgPath == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			fail("cannot get user home directory: %v", err)
-		}
-
-		*cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
-	}
-
-	cfg, err := loadCfgFile(*cfgPath)
-	if err != nil {
-		fail("cannot load configuration: %v", err)
-	}
-
-	binCfg, err := findBinCfg(cfg, *binName)
-	if err != nil {
-		fail("%v", err)
-	}
-
-	for k, v := range extraHeaderFields {
-		binCfg.ExtraHeaderFields[k] = v
-	}
-
-	uri, err := url.Parse(binCfg.Host)
-	if err != nil {
-		fail("cannot parse %q bin %q host: %v", binCfg.Name, binCfg.Host, err)
-	}
-
-	clientOptions := []privatebin.Option{
-		privatebin.WithUserAgent(userAgent),
-		privatebin.WithBasicAuth(
-			binCfg.Auth.Username,
-			binCfg.Auth.Password,
-		),
-	}
-
-	for k, v := range binCfg.ExtraHeaderFields {
-		clientOptions = append(clientOptions, privatebin.WithCustomHeaderField(k, v))
-	}
-
-	client := privatebin.NewClient(*uri, clientOptions...)
-
-	if len(os.Args) == 1 {
-		fmt.Fprint(os.Stderr, helpMessage)
-		os.Exit(1)
-	}
-
-	switch os.Args[1] {
-	case "create":
-		handleCreate(ctx, binCfg, client)
-	case "show":
-		handleShow(ctx, binCfg, client)
-	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", os.Args[1])
-		fmt.Fprintf(os.Stderr, "Use 'privatebin -h' for a list of commands.\n")
-		os.Exit(2)
-	}
-}
-
-func handleCreate(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) {
-	createCmd := flag.NewFlagSet("privatebin create", flag.ExitOnError)
-
-	expire := createCmd.String("expire", "", "the time to live of the paste")
-	openDiscussion := createCmd.Bool("open-discussion", false, "enable discussion on the paste")
-	burnAfterReading := createCmd.Bool("burn-after-reading", false, "delete the paste after reading")
-	gzip := createCmd.Bool("gzip", true, "gzip the paste data")
-	formatter := createCmd.String("formatter", "", "the text formatter to use, can be plaintext, markdown or syntaxhighlighting")
-	password := createCmd.String("password", "", "the paste password")
-	filename := createCmd.String("filename", "", "read filepath instead of stdin")
-	attachment := createCmd.Bool("attachment", false, "create the paste as an attachment")
-
-	if err := createCmd.Parse(flag.Args()[1:]); err != nil {
-		fmt.Println("Failed to parse create command flags:", err)
-		os.Exit(3)
-	}
-
-	if expire != nil {
-		binCfg.Expire = *expire
-	}
-
-	if openDiscussion != nil {
-		binCfg.OpenDiscussion = openDiscussion
-	}
-
-	if burnAfterReading != nil {
-		binCfg.BurnAfterReading = burnAfterReading
-	}
-
-	if gzip != nil {
-		binCfg.GZip = gzip
-	}
-
-	if *formatter != "" {
-		binCfg.Formatter = *formatter
-	}
-
-	var (
-		attachementName string
-		data            []byte
-		err             error
-	)
-	if *filename != "" {
-		file, err := os.Open(*filename)
-		if err != nil {
-			fail("cannot open %q file: %v", *filename, err)
-		}
-
-		data, err = io.ReadAll(file)
-		if err != nil {
-			fail("cannot read %q file: %v", *filename, err)
-		}
-
-		if *attachment {
-			attachementName = filepath.Base(*filename)
-		}
-	} else {
-		data, err = io.ReadAll(os.Stdin)
-		if err != nil {
-			fail("cannot read stdin: %v", err)
-		}
-
-		if *attachment {
-			attachementName = "stdin"
-		}
-	}
-
-	options := privatebin.CreatePasteOptions{
-		AttachmentName:   attachementName,
-		Formatter:        binCfg.Formatter,
-		Expire:           binCfg.Expire,
-		OpenDiscussion:   *binCfg.OpenDiscussion,
-		BurnAfterReading: *binCfg.BurnAfterReading,
-		Password:         []byte(*password),
-		Compress:         privatebin.CompressionAlgorithmNone,
-	}
-
-	if *binCfg.GZip {
-		options.Compress = privatebin.CompressionAlgorithmGZip
-	}
-
-	resp, err := client.CreatePaste(ctx, data, options)
-	if err != nil {
-		fail("cannot create the paste: %v", err)
-	}
-
-	fmt.Printf("%s\n", resp)
-}
-
-func handleShow(ctx context.Context, binCfg *BinCfg, client *privatebin.Client) {
-	showCmd := flag.NewFlagSet("privatebin show", flag.ExitOnError)
-
-	insecure := showCmd.Bool("insecure", false, "")
-	password := showCmd.String("password", "", "the paste password")
-
-	if err := showCmd.Parse(flag.Args()[1:]); err != nil {
-		fmt.Println("Failed to parse create command flags:", err)
-		os.Exit(3)
-	}
-
-	value := showCmd.Arg(0)
-	link, err := url.Parse(value)
-	if err != nil {
-		fail("cannot parse url: %v", err)
-	}
-
-	fmt.Printf("XXX %v\n", *insecure)
-
-	options := privatebin.ShowPasteOptions{
-		Password: []byte(*password),
-	}
-
-	resp, err := client.ShowPaste(ctx, *link, options)
-	if err != nil {
-		fail("cannot show the paste: %v", err)
-	}
-
-	fmt.Printf("%v\n", resp)
+	rootCmd.Execute()
 }
