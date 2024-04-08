@@ -75,6 +75,12 @@ type (
 		DeleteToken string
 	}
 
+	ShowPasteResult struct {
+		PasteID      string
+		CommentCount int
+		Paste        Paste
+	}
+
 	createPasteRequest struct {
 		V     int                    `json:"v"`
 		AData AData                  `json:"adata"`
@@ -170,7 +176,7 @@ func (c *Client) ShowPaste(
 	ctx context.Context,
 	urlWithMasterKey url.URL,
 	opts ShowPasteOptions,
-) (any, error) {
+) (*ShowPasteResult, error) {
 	fragment := urlWithMasterKey.Fragment
 	if strings.HasPrefix(urlWithMasterKey.Fragment, "-") {
 		fragment = urlWithMasterKey.Fragment[1:]
@@ -296,7 +302,11 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot unmarshal paste content: %w", err)
 	}
 
-	return paste, nil
+	return &ShowPasteResult{
+		PasteID:      pasteResponse.ID,
+		CommentCount: pasteResponse.CommentCount,
+		Paste:        paste,
+	}, nil
 }
 
 func (c *Client) CreatePaste(

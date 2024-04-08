@@ -135,12 +135,12 @@ var (
 				ConfirmBurn: confirmBurn,
 			}
 
-			resp, err := client.ShowPaste(ctx, *link, options)
+			result, err := client.ShowPaste(ctx, *link, options)
 			if err != nil {
 				return fmt.Errorf("cannot show paste: %w", err)
 			}
 
-			fmt.Printf("%s\n", string(resp.Attachement))
+			fmt.Printf("%s\n", result.Paste.Data)
 			return nil
 		},
 	}
