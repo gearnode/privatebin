@@ -1,6 +1,6 @@
 module go.gearno.de/privatebin
 
-go 1.21
+go 1.22
 
 require (
 	gearno.de/base58 v0.0.0-20221013154836-14e0799f1471
