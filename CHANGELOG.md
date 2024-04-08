@@ -8,6 +8,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `privatebin show` command.
+- Add `privatebin create` command.
+
+### Changed
+
+- Minimal Golang version is now v1.22.
+
 ## [1.4.0] - 2023-01-08
 
 ### Added
