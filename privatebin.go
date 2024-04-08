@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"gearno.de/base58"
 	"golang.org/x/crypto/pbkdf2"
@@ -64,7 +65,8 @@ type (
 	}
 
 	ShowPasteOptions struct {
-		Password []byte
+		Password    []byte
+		ConfirmBurn bool
 	}
 
 	createPasteRequest struct {

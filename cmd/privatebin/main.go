@@ -52,8 +52,8 @@ var (
 	filename         string
 	attachment       bool
 
-	insecure bool
-	confirm  bool
+	insecure    bool
+	confirmBurn bool
 
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
@@ -131,7 +131,8 @@ var (
 			}
 
 			options := privatebin.ShowPasteOptions{
-				Password: []byte(password),
+				Password:    []byte(password),
+				ConfirmBurn: confirmBurn,
 			}
 
 			resp, err := client.ShowPaste(ctx, *link, options)
@@ -240,7 +241,7 @@ func init() {
 	createCmd.Flags().BoolVar(&attachment, "attachment", false, "create the paste as an attachment")
 
 	showCmd.Flags().BoolVar(&insecure, "insecure", false, "")
-	showCmd.Flags().BoolVar(&confirm, "confirm", false, "")
+	showCmd.Flags().BoolVar(&confirmBurn, "confirm-burn", false, "")
 	showCmd.Flags().StringVar(&password, "password", "", "the paste password")
 
 	rootCmd.AddCommand(showCmd, createCmd)
