@@ -60,7 +60,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
 		Version: fmt.Sprintf("v%s", cliVersion),
-		Short:   "TODO",
+		Short:   "A streamlined CLI for effortlessly creating and managing PrivateBin pastes",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
 			switch output {
