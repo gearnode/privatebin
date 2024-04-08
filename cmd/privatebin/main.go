@@ -12,7 +12,7 @@
 // OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 
-package main // import "gearno.de/cmd/privatebin"
+package main
 
 import (
 	"context"
@@ -28,7 +28,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"gearno.de/privatebin"
+	"go.gearno.de/privatebin"
 )
 
 var (
