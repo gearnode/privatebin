@@ -212,6 +212,10 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot decode response body: %w", err)
 	}
 
+	if pasteResponse.Status != 0 {
+		return nil, fmt.Errorf("cannot load paste: server respond with %d status: %s", pasteResponse.Status, pasteResponse.Message)
+	}
+
 	masterKeyWithPassword := append(masterKey, opts.Password...)
 
 	encryptedCipherText, err := decode64(pasteResponse.CT)
@@ -428,7 +432,7 @@ func (c *Client) CreatePaste(
 	}
 
 	if pasteResponse.Status != 0 {
-		return "", fmt.Errorf("status of the paste is not zero: %s", pasteResponse.Message)
+		return "", fmt.Errorf("cannot create paste: server respond with %d status: %s", pasteResponse.Status, pasteResponse.Message)
 	}
 
 	pasteID, err := url.Parse(pasteResponse.URL)
