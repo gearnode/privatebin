@@ -179,71 +179,6 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 	return client
 }
 
-func decrypt(masterKey []byte, ct string, adata []byte, spec Spec) ([]byte, error) {
-	encryptedCipherText, err := decode64(ct)
-	if err != nil {
-		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
-	}
-
-	key := pbkdf2.Key(
-		masterKey,
-		spec.Salt,
-		spec.Iterations,
-		spec.KeySize/8,
-		sha256.New,
-	)
-
-	var (
-		cipherBlock cipher.Block
-		gcm         cipher.AEAD
-	)
-
-	switch spec.Algorithm {
-	case EncryptionAlgorithmAES:
-		cipherBlock, err = aes.NewCipher(key)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create new cipher: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec.Algorithm)
-	}
-
-	switch spec.Mode {
-	case EncryptionModeGCM:
-		gcm, err = newGCMWithNonceAndTagSize(
-			cipherBlock,
-			len(spec.IV),
-			spec.TagSize/8,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported encryption mode: %q", spec.Mode)
-	}
-
-	cipherText, err := gcm.Open(nil, spec.IV, encryptedCipherText, adata)
-	if err != nil {
-		return nil, err
-	}
-
-	switch spec.Compression {
-	case CompressionAlgorithmNone:
-	case CompressionAlgorithmGZip:
-		buf := bytes.NewBuffer(cipherText)
-		fr := flate.NewReader(buf)
-		defer fr.Close()
-		cipherText, err = io.ReadAll(fr)
-		if err != nil {
-			return nil, fmt.Errorf("cannot read gzip: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unsupported compression mode: %q", spec.Compression)
-	}
-
-	return cipherText, nil
-}
-
 func (c *Client) ShowPaste(
 	ctx context.Context,
 	urlWithMasterKey url.URL,
@@ -521,4 +456,69 @@ func (c *Client) CreatePaste(
 		PasteURL:    pasteLink,
 		DeleteToken: pasteResponse.DeleteToken,
 	}, nil
+}
+
+func decrypt(masterKey []byte, ct string, adata []byte, spec Spec) ([]byte, error) {
+	encryptedCipherText, err := decode64(ct)
+	if err != nil {
+		return nil, fmt.Errorf("cannot base64 decode cipher text: %w", err)
+	}
+
+	key := pbkdf2.Key(
+		masterKey,
+		spec.Salt,
+		spec.Iterations,
+		spec.KeySize/8,
+		sha256.New,
+	)
+
+	var (
+		cipherBlock cipher.Block
+		gcm         cipher.AEAD
+	)
+
+	switch spec.Algorithm {
+	case EncryptionAlgorithmAES:
+		cipherBlock, err = aes.NewCipher(key)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new cipher: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported encryption algorithm: %q", spec.Algorithm)
+	}
+
+	switch spec.Mode {
+	case EncryptionModeGCM:
+		gcm, err = newGCMWithNonceAndTagSize(
+			cipherBlock,
+			len(spec.IV),
+			spec.TagSize/8,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("cannot create new galois counter mode: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported encryption mode: %q", spec.Mode)
+	}
+
+	cipherText, err := gcm.Open(nil, spec.IV, encryptedCipherText, adata)
+	if err != nil {
+		return nil, err
+	}
+
+	switch spec.Compression {
+	case CompressionAlgorithmNone:
+	case CompressionAlgorithmGZip:
+		buf := bytes.NewBuffer(cipherText)
+		fr := flate.NewReader(buf)
+		defer fr.Close()
+		cipherText, err = io.ReadAll(fr)
+		if err != nil {
+			return nil, fmt.Errorf("cannot read gzip: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported compression mode: %q", spec.Compression)
+	}
+
+	return cipherText, nil
 }
