@@ -140,6 +140,12 @@ var (
 				return fmt.Errorf("cannot parse paste url: %w", err)
 			}
 
+			if link.Scheme+"://"+link.Host != binCfg.Host {
+				if !insecure {
+					return fmt.Errorf("untrusted privatebin instance use --insecure flag or add it to the configuration")
+				}
+			}
+
 			options := privatebin.ShowPasteOptions{
 				Password:    []byte(password),
 				ConfirmBurn: confirmBurn,
