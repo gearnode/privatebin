@@ -105,5 +105,5 @@ func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cip
 		return cipher.NewGCM(nonceSize, tagSize)
 	}
 
-	panic("crypto not GCM: unsupported")
+	panic("non GCM crypto is not supported")
 }
