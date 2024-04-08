@@ -40,7 +40,6 @@ var (
 
 	ctx           = context.Background()
 	clientOptions = []privatebin.Option{
-
 		privatebin.WithUserAgent(userAgent),
 	}
 
