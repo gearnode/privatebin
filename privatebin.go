@@ -164,7 +164,16 @@ func (c *Client) ShowPaste(
 	urlWithMasterKey url.URL,
 	opts ShowPasteOptions,
 ) (any, error) {
-	masterKey, err := base58.Decode(urlWithMasterKey.Fragment)
+	fragment := urlWithMasterKey.Fragment
+	if strings.HasPrefix(urlWithMasterKey.Fragment, "-") {
+		fragment = urlWithMasterKey.Fragment[1:]
+
+		if !opts.ConfirmBurn {
+			return nil, fmt.Errorf("cannot read a paste that is set to be burned after reading")
+		}
+	}
+
+	masterKey, err := base58.Decode(fragment)
 	if err != nil {
 		return nil, fmt.Errorf("cannot decode master key: %w", err)
 	}
