@@ -426,12 +426,17 @@ func (c *Client) CreatePaste(
 		return "", fmt.Errorf("cannot parse paste url: %w", err)
 	}
 
+	fragment := base58.Encode(masterKey)
+	if opts.BurnAfterReading {
+		fragment = "-" + fragment
+	}
+
 	pasteLink := url.URL{
 		Scheme:   c.endpoint.Scheme,
 		Host:     c.endpoint.Host,
 		Path:     c.endpoint.Path,
 		RawQuery: pasteID.RawQuery,
-		Fragment: base58.Encode(masterKey),
+		Fragment: fragment,
 	}
 
 	return pasteLink.String(), nil
