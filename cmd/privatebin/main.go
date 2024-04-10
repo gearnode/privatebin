@@ -289,7 +289,7 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "the command output format")
 	rootCmd.Flags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
 	rootCmd.Flags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
 	rootCmd.Flags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
