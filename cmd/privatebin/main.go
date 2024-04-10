@@ -303,8 +303,8 @@ func init() {
 	createCmd.Flags().StringVar(&filename, "filename", "", "read filepath instead of stdin")
 	createCmd.Flags().BoolVar(&attachment, "attachment", false, "create the paste as an attachment")
 
-	showCmd.Flags().BoolVar(&confirmBurn, "confirm-burn", false, "")
 	showCmd.Flags().BoolVar(&insecure, "insecure", false, "allow reading paste from untrusted instance")
+	showCmd.Flags().BoolVar(&confirmBurn, "confirm-burn", false, "confirm paste opening, it will be deleted immediately afterwards")
 	showCmd.Flags().StringVar(&password, "password", "", "the paste password")
 
 	rootCmd.AddCommand(showCmd, createCmd)
