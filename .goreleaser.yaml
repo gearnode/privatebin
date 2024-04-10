@@ -30,7 +30,7 @@ builds:
       - "-trimpath"
       - "-mod=readonly"
     ldflags:
-      - "-s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}"
+      - "-s -w -X main.version=v{{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}"
 
 release:
   github:

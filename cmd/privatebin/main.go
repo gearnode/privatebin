@@ -32,8 +32,11 @@ import (
 )
 
 var (
-	cliVersion        = "dev"
-	userAgent         = "privatebin-cli/" + cliVersion + " (source; https://go.gearno.de/privatebin)"
+	version = "dev"
+	commit  = "unknow"
+	date    = "unknow"
+
+	userAgent         = "privatebin-cli/" + version + " (source; https://go.gearno.de/privatebin)"
 	cfgPath           string
 	binName           string
 	extraHeaderFields []string
@@ -60,7 +63,7 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
-		Version: fmt.Sprintf("v%s", cliVersion),
+		Version: fmt.Sprintf("%s-%s (%s)", version, commit, date),
 		Short:   "A streamlined CLI for effortlessly creating and managing PrivateBin pastes",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
