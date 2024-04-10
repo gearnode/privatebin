@@ -6,56 +6,44 @@ date: Jan 20, 2022
 section: 1
 ---
 # NAME
-**privatebin** – create privatebin paste with simple shell command
+**privatebin** – manage privatebin pastes with simple shell command
 
 # SYNOPSIS
-**privatebin** [-help] [-bin=\<name\>] [-cfg-file=\<filename\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-burn-after-reading] [-expire=\<time\>] [-formatter=\<format\>]\
-\ \ \ \ \ \ \ \ \ \ \ \[-open-discussion] [-password=\<password\>] [-gzip]\
-\ \ \ \ \ \ \ \ \ \ \ \[-attachment] [-filename=\<filename\>] [-version] *STDIN*
+**privatebin** [-h | -\-help] [-v | -\-version] [-\-bin=\<name\>]\
+\ \ \ \ \ \ \ \ \ \ \ [-\-config=\<filename\>] [-\-header=\<key=value\>]\
+\ \ \ \ \ \ \ \ \ \ \ [-\-output=\<format\>] \<command\> [\<args\>]
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
 instances.
 
 # OPTIONS
-**-help**
+**-h, -\-help**
 : Show help message.
 
-**-bin** \<name\>
+**-v, --version**
+: Prints the privatebin cli version.
+
+**-b, -\-bin** \<name\>
 : The privatebin instance name.
 
-**-burn-after-reading**
-: Delete the paste after reading.
-
-**-cfg-file** \<path\>
+**-c, -\-config** \<path\>
 : The path of the configuration file (default
   "~/.config/privatebin/config.json").
 
-**-expire** \<time\>
-: The time to live of the paste.
+**-H, -\-header** \<key=value\>
+: The extra HTTP header fields to include in the request sent.
 
-**-formatter** \<format\>
-: The text formatter to use, can be plaintext, markdown or
-  syntaxhighlighting.
+**-o, -\-output** \<format\>
+: The output format can be \"\" or \"json\" (default \"\").
 
-**-open-discussion**
-: Enable discussion on the paste.
+# COMMANDS
 
-**-password**
-: Add password on the paste.
+**privatebin-create(1)**
+: Create a paste
 
-**-attachment**
-: Create the paste as an attachment.
-
-**-filename**
-: Open and read filename instead of `stdin`.
-
-**-gzip**
-: GZip the paste data.
-
-**-version**
-: Prints the privatebin cli version.
+**privatebin-show(1)**
+: Show a paste
 
 # EXIT STATUS
 The **privatebin** utility exits 0 on success, and >0 if an error
@@ -64,7 +52,7 @@ occurs.
 # EXAMPLES
 Create a paste on the default privatebin instance:
 
-    $ cat example.txt | privatebin
+    $ cat example.txt | privatebin create
 
 # SEE ALSO
 **privatebin.conf**(5)
