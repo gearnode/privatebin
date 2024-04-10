@@ -14,10 +14,10 @@ instance configured in the **config.json**.
 
 # FORMAT
 ## Top level object keys:
-**open_discussion** *bool* (default: false)
+**open-discussion** *bool* (default: false)
 : The default value of open discussion for a paste.
 
-**burn_after_reading** *bool* (default: false)
+**burn-after-reading** *bool* (default: false)
 : The default value of burn after reading for a paste.
 
 **formatter** *string* (default: "plaintext")
@@ -27,7 +27,10 @@ instance configured in the **config.json**.
 : The default time to live for a paste.
 
 **gzip** *bool* (default: false)
-: GZip the paste data
+: Enable GZip the paste data.
+
+**extra-header-fields** *object<string, string>*
+: The extra HTTP header fields to include in the request sent.
 
 **bin** *array\<bin\>*
 : The list of bin instances.
@@ -45,17 +48,20 @@ instance configured in the **config.json**.
 **expire** *string*
 : The default time to live for a paste.
 
-**open_discussion** *bool*
+**open-discussion** *bool*
 : The default value of open discussion for a paste.
 
-**burn_after_reading** *bool*
+**burn-after-reading** *bool*
 : The default value of burn after reading for a paste.
 
 **formatter** *string*
 : The formatter for the paste.
 
 **gzip** *bool*
-: GZip the paste data
+: GZip the paste data.
+
+**extra-header-fields** *object<string, string>*
+: The extra HTTP header fields to include in the request sent.
 
 ## The auth object format:
 **username** *string*
@@ -88,14 +94,17 @@ A bit more complete configuration file:
                     "password": "s$cr$t"
                 },
                 "formatter": "markdown",
-                "burn_after_reading": false
+                "burn-after-reading": false
             },
             {
                 "name": "",
                 "host": "https://privatebin.net"
+				"extra-header-fields": {
+					"Foo": "Bar",
+				},
             },
         ],
-        "burn_after_reading": true
+        "burn-after-reading": true
     }
 
 # FILES
