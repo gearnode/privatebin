@@ -16,6 +16,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Minimal Golang version is now v1.22.
+- Minimal PrivateBin instance version is now 1.7.
 
 ## [1.4.0] - 2023-01-08
 
