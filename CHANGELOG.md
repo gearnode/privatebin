@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0] - 2024-04-11
+
 ### Added
 
 - Add `privatebin show` command.
@@ -17,6 +19,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Minimal Golang version is now v1.22.
 - Minimal PrivateBin instance version is now 1.7.
+- Configuration use kebab-case instead of sake-case.
 
 ## [1.4.0] - 2023-01-08
 
