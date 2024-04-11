@@ -13,6 +13,7 @@ jobs:
   goreleaser:
     runs-on: "ubuntu-latest"
     steps:
+      - run: "sudo apt-get install pandoc"
       - uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
