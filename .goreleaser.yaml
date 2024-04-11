@@ -15,6 +15,7 @@ builds:
     main: "./cmd/privatebin"
     binary: "privatebin"
     goos:
+      - "windows"
       - "linux"
       - "darwin"
       - "freebsd"
