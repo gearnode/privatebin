@@ -1,3 +1,9 @@
+<img src="doc/logo.png" alt="privatebin cli logo"/>
+
+A streamlined CLI for effortlessly creating and managing PrivateBin pastes
+
+---
+
 # Introduction
 This repository contains a CLI for privatebin server.
 
