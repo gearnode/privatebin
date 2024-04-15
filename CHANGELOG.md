@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.1] - 2024-04-15
+
+### Fixed
+
+- Top level flags are not handled.
+
 ## [2.0.0] - 2024-04-11
 
 ### Added

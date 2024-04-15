@@ -8,8 +8,8 @@ PANDOC = pandoc
 INSTALL = install
 RM = rm -f
 
-DATETIME = "Apr 01, 2024"
-VERSION = 2.0.0
+DATETIME = "Apr 15, 2024"
+VERSION = 2.0.1
 LDFLAGS = -ldflags "-X 'main.cliVersion=$(VERSION)'"
 
 BIN = bin/privatebin
