@@ -290,9 +290,9 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "the command output format")
-	rootCmd.Flags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
-	rootCmd.Flags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
-	rootCmd.Flags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
+	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
+	rootCmd.PersistentFlags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
+	rootCmd.PersistentFlags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
 
 	createCmd.Flags().StringVar(&expire, "expire", "", "the time to live of the paste")
 	createCmd.Flags().BoolVar(&openDiscussion, "open-discussion", false, "enable discussion on the paste")
