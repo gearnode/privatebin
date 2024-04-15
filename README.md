@@ -25,10 +25,14 @@ preferred method.
 
 ### Arch Linux
 
+[![privatebin-cli on AUR](https://img.shields.io/aur/version/privatebin-cli?label=privatebin-cli)](https://aur.archlinux.org/packages/privatebin-cli/)
+[![privatebin-cli-bin on AUR](https://img.shields.io/aur/version/privatebin-cli-bin?label=privatebin-cli-bin)](https://aur.archlinux.org/packages/privatebin-cli-bin/)
+
 Available on the Arch User Repository (AUR). Install using your
 favorite AUR helper:
 
 - [privatebin-cli](https://aur.archlinux.org/packages/privatebin-cli/) - Release package
+- [privatebin-cli-bin](https://aur.archlinux.org/packages/privatebin-cli-bin) - Binary package
 
 #### Example Installation:
 
