@@ -30,7 +30,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gearno.de/base58"
+	"go.gearno.de/encoding/base58"
 	"golang.org/x/crypto/pbkdf2"
 )
 
