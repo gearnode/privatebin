@@ -1,4 +1,4 @@
-module go.gearno.de/privatebin
+module go.gearno.de/privatebin/v2
 
 go 1.22
 

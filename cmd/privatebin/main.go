@@ -28,7 +28,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"go.gearno.de/privatebin"
+	"go.gearno.de/privatebin/v2"
 )
 
 var (
