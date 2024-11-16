@@ -3,7 +3,7 @@ title: PRIVATEBIN.CONF
 header: Privatebin Manual
 footer: 1.0.0
 date: Jan 20, 2022
-section: 1
+section: 5
 ---
 # NAME
 **privatebin.conf** – privatebin CLI configuration file.
