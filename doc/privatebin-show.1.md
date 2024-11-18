@@ -29,7 +29,7 @@ Show paste.
 : The paste password when paste has a password.
 
 # EXAMPLES
-Create a paste on the default privatebin instance:
+Show a paste on the default privatebin instance:
 
     $ privatebin show https://example.com/foobar#mk
 
