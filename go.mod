@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/spf13/cobra v1.8.0
 	go.gearno.de/encoding/base58 v0.1.0
-	golang.org/x/crypto v0.21.0
+	golang.org/x/crypto v0.31.0
 )
 
 require (
