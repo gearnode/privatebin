@@ -3,9 +3,9 @@ module go.gearno.de/privatebin/v2
 go 1.22
 
 require (
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	go.gearno.de/encoding/base58 v0.1.0
-	golang.org/x/crypto v0.21.0
+	golang.org/x/crypto v0.32.0
 )
 
 require (
