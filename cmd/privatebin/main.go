@@ -311,5 +311,8 @@ func init() {
 }
 
 func main() {
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
 }

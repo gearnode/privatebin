@@ -13,6 +13,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Update dependencies.
 - Upgrade go version from 1.22 to 1.23.
 
+### Fixed
+
+- Properly handle and log errors from `rootCmd.Execute()` in the main
+  function.
+
 ## [2.0.1] - 2024-04-15
 
 ### Fixed
