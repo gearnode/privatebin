@@ -11,6 +11,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Update dependencies.
+- Upgrade go version from 1.22 to 1.23.
 
 ## [2.0.1] - 2024-04-15
 

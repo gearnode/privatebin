@@ -1,6 +1,6 @@
 module go.gearno.de/privatebin/v2
 
-go 1.22
+go 1.23
 
 require (
 	github.com/spf13/cobra v1.8.1
