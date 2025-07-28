@@ -75,8 +75,9 @@ func defaultPooledClient() *http.Client {
 }
 
 // Golang standard library does not expose GCM with custom nonce and
-// tag size, even if it supported. Following code is a backport from
-// the Golang crypto module to allowing it.
+// tag size in Go 1.24 and later. The gcmAble interface was removed.
+// For compatibility, we'll fallback to using the standard GCM implementation
+// and validate parameters.
 //
 // References:
 // - https://go-review.googlesource.com/c/go/+/116435
@@ -84,15 +85,13 @@ func defaultPooledClient() *http.Client {
 // - https://github.com/golang/go/issues/42470
 
 const (
-	gcmBlockSize      = 16
-	gcmMinimumTagSize = 12 // NIST SP 800-38D recommends tags with 12 or more bytes.
+	gcmBlockSize         = 16
+	gcmMinimumTagSize    = 12 // NIST SP 800-38D recommends tags with 12 or more bytes.
+	gcmStandardNonceSize = 12 // Standard GCM nonce size
+	gcmStandardTagSize   = 16 // Standard GCM tag size
 )
 
-type gcmAble interface {
-	NewGCM(nonceSize, tagSize int) (cipher.AEAD, error)
-}
-
-func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
+func newGCM(cipherBlock cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
 	if tagSize < gcmMinimumTagSize || tagSize > gcmBlockSize {
 		return nil, errors.New("cipher: incorrect tag size given to GCM")
 	}
@@ -101,9 +100,23 @@ func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cip
 		return nil, errors.New("cipher: the nonce can't have zero length, or the security of the key will be immediately compromised")
 	}
 
-	if cipher, ok := cipher.(gcmAble); ok {
-		return cipher.NewGCM(nonceSize, tagSize)
+	// In Go 1.24+, we need to use the standard cipher.NewGCM functions
+	// Check if we can use standard GCM (nonce=12, tag=16)
+	if nonceSize == gcmStandardNonceSize && tagSize == gcmStandardTagSize {
+		return cipher.NewGCM(cipherBlock)
 	}
 
-	panic("non GCM crypto is not supported")
+	// For non-standard nonce sizes, use NewGCMWithNonceSize if available
+	if tagSize == gcmStandardTagSize {
+		return cipher.NewGCMWithNonceSize(cipherBlock, nonceSize)
+	}
+
+	// For non-standard tag sizes, use NewGCMWithTagSize if available
+	if nonceSize == gcmStandardNonceSize {
+		return cipher.NewGCMWithTagSize(cipherBlock, tagSize)
+	}
+
+	// If both nonce and tag sizes are non-standard, this is not supported
+	// in Go 1.24+ through the standard library
+	return nil, errors.New("cipher: custom nonce and tag sizes are not supported together in Go 1.24+")
 }
