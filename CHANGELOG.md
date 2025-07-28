@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `skip-tls-verify` configuration option to skip TLS certificate verification.
+- Add `--skip-tls-verify` flag to `create` and `show` commands.
+
 ### Changed
 
 - Update dependencies.
@@ -76,6 +81,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   blocking request from the CLI.
 
 ## [1.1.1] - 2022-07-20
+
 Nothing.
 
 ## [1.1.0] - 2022-06-23
