@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -58,8 +59,9 @@ var (
 	filename         string
 	attachment       bool
 
-	insecure    bool
-	confirmBurn bool
+	insecure      bool
+	confirmBurn   bool
+	skipTLSVerify bool
 
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
@@ -120,6 +122,17 @@ var (
 						strings.TrimSpace(parts[0]),
 						strings.TrimSpace(parts[1]),
 					),
+				)
+			}
+
+			if (binCfg.SkipTLSVerify != nil && *binCfg.SkipTLSVerify) || skipTLSVerify {
+				tlsConfig := &tls.Config{
+					InsecureSkipVerify: true,
+				}
+
+				clientOptions = append(
+					clientOptions,
+					privatebin.WithTLSConfig(tlsConfig),
 				)
 			}
 
@@ -302,10 +315,12 @@ func init() {
 	createCmd.Flags().StringVar(&password, "password", "", "the paste password")
 	createCmd.Flags().StringVar(&filename, "filename", "", "read filepath instead of stdin")
 	createCmd.Flags().BoolVar(&attachment, "attachment", false, "create the paste as an attachment")
+	createCmd.Flags().BoolVar(&skipTLSVerify, "skip-tls-verify", false, "skip TLS certificate verification")
 
 	showCmd.Flags().BoolVar(&insecure, "insecure", false, "allow reading paste from untrusted instance")
 	showCmd.Flags().BoolVar(&confirmBurn, "confirm-burn", false, "confirm paste opening, it will be deleted immediately afterwards")
 	showCmd.Flags().StringVar(&password, "password", "", "the paste password")
+	showCmd.Flags().BoolVar(&skipTLSVerify, "skip-tls-verify", false, "skip TLS certificate verification")
 
 	rootCmd.AddCommand(showCmd, createCmd)
 }

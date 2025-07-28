@@ -17,6 +17,7 @@ package privatebin
 import (
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"net"
@@ -53,7 +54,7 @@ func decode64(s string) ([]byte, error) {
 	return base64.RawStdEncoding.DecodeString(s)
 }
 
-func defaultPooledClient() *http.Client {
+func defaultPooledClient(tlsConfig *tls.Config) *http.Client {
 	dial := &net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
@@ -69,6 +70,7 @@ func defaultPooledClient() *http.Client {
 		ExpectContinueTimeout: 1 * time.Second,
 		ForceAttemptHTTP2:     true,
 		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+		TLSClientConfig:       tlsConfig,
 	}
 
 	return &http.Client{Transport: transport}

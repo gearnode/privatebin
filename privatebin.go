@@ -21,6 +21,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -50,6 +51,7 @@ type (
 		password               string
 		customHTTPHeaderFields map[string]string
 		userAgent              string
+		tlsConfig              *tls.Config
 	}
 
 	Option func(c *Client)
@@ -165,16 +167,23 @@ func WithUserAgent(userAgent string) Option {
 	}
 }
 
+func WithTLSConfig(tlsConfig *tls.Config) Option {
+	return func(c *Client) {
+		c.tlsConfig = tlsConfig
+	}
+}
+
 func NewClient(endpoint url.URL, options ...Option) *Client {
 	client := &Client{
 		endpoint:               endpoint,
-		httpClient:             defaultPooledClient(),
 		customHTTPHeaderFields: make(map[string]string),
 	}
 
 	for _, option := range options {
 		option(client)
 	}
+
+	client.httpClient = defaultPooledClient(client.tlsConfig)
 
 	return client
 }

@@ -35,6 +35,7 @@ type (
 		OpenDiscussion    *bool             `json:"open-discussion"`
 		BurnAfterReading  *bool             `json:"burn-after-reading"`
 		GZip              *bool             `json:"gzip"`
+		SkipTLSVerify     *bool             `json:"skip-tls-verify"`
 		Formatter         string            `json:"formatter"`
 		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
@@ -45,6 +46,7 @@ type (
 		OpenDiscussion    bool              `json:"open-discussion"`
 		BurnAfterReading  bool              `json:"burn-after-reading"`
 		GZip              bool              `json:"gzip"`
+		SkipTLSVerify     bool              `json:"skip-tls-verify"`
 		Formatter         string            `json:"formatter"`
 		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
@@ -104,6 +106,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 
 		if binCfg.GZip == nil {
 			binCfg.GZip = &cfg.GZip
+		}
+
+		if binCfg.SkipTLSVerify == nil {
+			binCfg.SkipTLSVerify = &cfg.SkipTLSVerify
 		}
 
 		if binCfg.ExtraHeaderFields == nil {

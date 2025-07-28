@@ -5,72 +5,86 @@ footer: 1.0.0
 date: Jan 20, 2022
 section: 5
 ---
+
 # NAME
+
 **privatebin.conf** – privatebin CLI configuration file.
 
 # DESCRIPTION
+
 The privatebin(1) command line interface create paste to an PrivateBin
 instance configured in the **config.json**.
 
 # FORMAT
+
 ## Top level object keys:
-**open-discussion** *bool* (default: false)
+
+**open-discussion** _bool_ (default: false)
 : The default value of open discussion for a paste.
 
-**burn-after-reading** *bool* (default: false)
+**burn-after-reading** _bool_ (default: false)
 : The default value of burn after reading for a paste.
 
-**formatter** *string* (default: "plaintext")
+**formatter** _string_ (default: "plaintext")
 : The default formatter for a paste.
 
-**expire** *string* (default: "1day")
+**expire** _string_ (default: "1day")
 : The default time to live for a paste.
 
-**gzip** *bool* (default: false)
+**gzip** _bool_ (default: false)
 : Enable GZip the paste data.
 
-**extra-header-fields** *object<string, string>*
+**skip-tls-verify** _bool_ (default: false)
+: Skip TLS certificate verification when connecting to the privatebin instance.
+
+**extra-header-fields** _object<string, string>_
 : The extra HTTP header fields to include in the request sent.
 
-**bin** *array\<bin\>*
+**bin** _array\<bin\>_
 : The list of bin instances.
 
 ## The bin object format:
-**name** *string*
+
+**name** _string_
 : The name of the bin instance.
 
-**host** *string*
+**host** _string_
 : The url of the bin instance.
 
-**auth** *auth*
+**auth** _auth_
 : The basic auth configuration of the bin instance.
 
-**expire** *string*
+**expire** _string_
 : The default time to live for a paste.
 
-**open-discussion** *bool*
+**open-discussion** _bool_
 : The default value of open discussion for a paste.
 
-**burn-after-reading** *bool*
+**burn-after-reading** _bool_
 : The default value of burn after reading for a paste.
 
-**formatter** *string*
+**formatter** _string_
 : The formatter for the paste.
 
-**gzip** *bool*
+**gzip** _bool_
 : GZip the paste data.
 
-**extra-header-fields** *object<string, string>*
+**skip-tls-verify** _bool_
+: Skip TLS certificate verification when connecting to the privatebin instance.
+
+**extra-header-fields** _object<string, string>_
 : The extra HTTP header fields to include in the request sent.
 
 ## The auth object format:
-**username** *string*
+
+**username** _string_
 : The basic auth username.
 
-**password** *string*
+**password** _string_
 : The basic auth password.
 
 # EXAMPLES
+
 Minimal privatebin configuration file:
 
     {
@@ -99,18 +113,20 @@ A bit more complete configuration file:
             {
                 "name": "",
                 "host": "https://privatebin.net"
-				"extra-header-fields": {
-					"Foo": "Bar",
-				},
+    			"extra-header-fields": {
+    				"Foo": "Bar",
+    			},
             },
         ],
         "burn-after-reading": true
     }
 
 # FILES
-*~/.config/privatebin/config.json*
+
+_~/.config/privatebin/config.json_
 : Default location of the privatebin configuration. The file has to be
-  created manually as it is not installed with a standard installation.
+created manually as it is not installed with a standard installation.
 
 # AUTHORS
+
 Bryan Frimin.
