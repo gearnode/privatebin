@@ -22,6 +22,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Properly handle and log errors from `rootCmd.Execute()` in the main
   function.
+- Extra headers not apply to show request.
 
 ## [2.0.1] - 2024-04-15
 
