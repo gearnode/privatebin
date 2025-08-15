@@ -220,6 +220,10 @@ func (c *Client) ShowPaste(
 		return nil, fmt.Errorf("cannot create request: %w", err)
 	}
 
+	for k, v := range c.customHTTPHeaderFields {
+		req.Header.Set(k, v)
+	}
+
 	req.Header.Set("User-Agent", c.userAgent)
 	req.Header.Set("X-Requested-With", "JSONHttpRequest")
 
