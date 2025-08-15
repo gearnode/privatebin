@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-08-15
+
 ### Added
 
 - Add `skip-tls-verify` configuration option to skip TLS certificate verification.
