@@ -157,7 +157,7 @@ var (
 				return fmt.Errorf("cannot parse paste url: %w", err)
 			}
 
-			if link.Scheme+"://"+link.Host != binCfg.Host {
+			if link.Scheme+"://"+link.Host != strings.TrimRight(binCfg.Host, "/") {
 				if !insecure {
 					return fmt.Errorf("untrusted privatebin instance use --insecure flag or add it to the configuration")
 				}
