@@ -94,7 +94,7 @@ type gcmAble interface {
 	NewGCM(nonceSize, tagSize int) (cipher.AEAD, error)
 }
 
-func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
+func newGCMWithNonceAndTagSize(block cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
 	if tagSize < gcmMinimumTagSize || tagSize > gcmBlockSize {
 		return nil, errors.New("cipher: incorrect tag size given to GCM")
 	}
@@ -103,9 +103,10 @@ func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cip
 		return nil, errors.New("cipher: the nonce can't have zero length, or the security of the key will be immediately compromised")
 	}
 
-	if cipher, ok := cipher.(gcmAble); ok {
-		return cipher.NewGCM(nonceSize, tagSize)
+	if block, ok := block.(gcmAble); ok {
+		return block.NewGCM(nonceSize, tagSize)
 	}
-
-	panic("non GCM crypto is not supported")
+	// Attempt to use cipher.NewGCM() before giving up.
+	// This matches the encrypt logic and works fine for some privatebin implementations.
+	return cipher.NewGCM(block)
 }
