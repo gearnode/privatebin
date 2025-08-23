@@ -34,8 +34,8 @@ import (
 
 var (
 	version = "dev"
-	commit  = "unknow"
-	date    = "unknow"
+	commit  = "unknown"
+	date    = "unknown"
 
 	userAgent         = "privatebin-cli/" + version + " (source; https://go.gearno.de/privatebin)"
 	cfgPath           string
@@ -196,7 +196,7 @@ var (
 						"paste_id": result.PasteID,
 						"paste": map[string]string{
 							"attachment_name": result.Paste.AttachmentName,
-							"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachement),
+							"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachment),
 							"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
 						},
 						"comment_count": result.CommentCount,

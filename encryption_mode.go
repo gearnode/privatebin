@@ -57,6 +57,6 @@ func (em EncryptionMode) String() string {
 	case EncryptionModeGCM:
 		return "gcm"
 	default:
-		return "unknow"
+		return "unknown"
 	}
 }

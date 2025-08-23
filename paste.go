@@ -28,7 +28,7 @@ import (
 type (
 	Paste struct {
 		Data           []byte
-		Attachement    []byte
+		Attachment     []byte
 		AttachmentName string
 		MimeType       string
 	}
@@ -37,7 +37,7 @@ type (
 func (p Paste) MarshalJSON() ([]byte, error) {
 	output := map[string]string{}
 
-	if len(p.Attachement) > 0 {
+	if len(p.Attachment) > 0 {
 		mimeType := p.MimeType
 		if mimeType == "" {
 			ext := filepath.Ext(p.AttachmentName)
@@ -54,7 +54,7 @@ func (p Paste) MarshalJSON() ([]byte, error) {
 		output["attachment"] = fmt.Sprintf(
 			"data:%s;base64,%s",
 			mimeType,
-			base64.StdEncoding.EncodeToString(p.Attachement),
+			base64.StdEncoding.EncodeToString(p.Attachment),
 		)
 	}
 

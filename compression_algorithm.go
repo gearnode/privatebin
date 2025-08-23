@@ -62,6 +62,6 @@ func (ca CompressionAlgorithm) String() string {
 	case CompressionAlgorithmGZip:
 		return "zlib"
 	default:
-		return "unknow"
+		return "unknown"
 	}
 }

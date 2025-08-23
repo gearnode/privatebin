@@ -61,7 +61,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Add `-filename` flag to read file instead of stdin.
-- Add `-attachment` flag to update data as an attchment.
+- Add `-attachment` flag to update data as an attachment.
 
 ### Changed
 
