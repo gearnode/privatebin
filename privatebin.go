@@ -502,7 +502,7 @@ func decrypt(masterKey []byte, ct string, adata []byte, spec Spec) ([]byte, erro
 
 	switch spec.Mode {
 	case EncryptionModeGCM:
-		gcm, err = newGCMWithNonceAndTagSize(
+		gcm, err = newGCM(
 			cipherBlock,
 			len(spec.IV),
 			spec.TagSize/8,
