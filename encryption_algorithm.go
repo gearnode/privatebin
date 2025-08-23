@@ -57,6 +57,6 @@ func (ea EncryptionAlgorithm) String() string {
 	case EncryptionAlgorithmAES:
 		return "aes"
 	default:
-		return "unknow"
+		return "unknown"
 	}
 }

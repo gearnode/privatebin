@@ -101,7 +101,6 @@ func (spec Spec) MarshalJSON() ([]byte, error) {
 			spec.Compression,
 		},
 	)
-
 }
 
 func (spec *Spec) UnmarshalJSON(data []byte) error {
