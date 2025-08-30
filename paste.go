@@ -42,7 +42,7 @@ func (p Paste) MarshalJSON() ([]byte, error) {
 		if mimeType == "" {
 			ext := filepath.Ext(p.AttachmentName)
 			mimeType = mime.TypeByExtension(ext)
-			if p.MimeType == "" {
+			if mimeType == "" {
 				mimeType = "application/octet-stream"
 			}
 		}
