@@ -1,5 +1,5 @@
 bin/*
 man/*
-
+coverage.out
 dist/
 vendor/
