@@ -90,7 +90,7 @@ func (p *Paste) UnmarshalJSON(data []byte) error {
 			return errors.New("invalid attachment: missing or invalid base64 encoding")
 		}
 
-		mimeType = strings.TrimPrefix(parts[0], ";base64")
+		mimeType = strings.TrimSuffix(parts[0], ";base64")
 		if mimeType == "" {
 			mimeType = "application/octet-stream"
 		}
