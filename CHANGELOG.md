@@ -11,6 +11,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - Fix various typos throughout the codebase (attachment, unknown).
+- Fix MIME type parsing in paste attachments (TrimPrefix -> TrimSuffix).
+- Fix MIME type inference bug when no explicit MIME type is provided.
 
 ## [2.1.0] - 2025-08-15
 
