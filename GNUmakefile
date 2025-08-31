@@ -14,9 +14,12 @@ LDFLAGS = -ldflags "-X 'main.cliVersion=$(VERSION)'"
 
 BIN = bin/privatebin
 
-.PHONY: all build man install uninstall clean test test-fuzz
+.PHONY: all build man install uninstall clean test test-fuzz vet
 
 all: build man
+
+vet:
+	$(GO) vet ./...
 
 build:
 	$(GO) build $(LDFLAGS) -o $(BIN) cmd/privatebin/main.go cmd/privatebin/cfg.go
