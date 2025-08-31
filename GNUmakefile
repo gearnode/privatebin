@@ -14,7 +14,7 @@ LDFLAGS = -ldflags "-X 'main.cliVersion=$(VERSION)'"
 
 BIN = bin/privatebin
 
-.PHONY: all build man install uninstall clean
+.PHONY: all build man install uninstall clean test test-fuzz
 
 all: build man
 
@@ -42,3 +42,12 @@ uninstall:
 
 clean:
 	$(RM) -r bin man
+
+test:
+	$(GO) test -v -race ./...
+
+test-fuzz:
+	@for fuzz in $$($(GO) test -list=Fuzz); do \
+		echo "Running $$fuzz"; \
+		$(GO) test -fuzz=$$fuzz -fuzztime=30s || exit 1; \
+	done
