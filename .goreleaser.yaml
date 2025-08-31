@@ -1,66 +1,119 @@
-version: 1
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: privatebin
 
 before:
   hooks:
-    - "make man"
-    - "go mod vendor"
+    - make man
+    - go mod vendor
 
-report_sizes: true
-    
 builds:
-  - id: "privatebin"
+  - id: privatebin
+    main: ./cmd/privatebin
+    binary: privatebin
+    ldflags:
+      - -s -w
+      - -X 'main.cliVersion={{.Version}}'
+      - -X 'main.commit={{.ShortCommit}}'
+      - -X 'main.date={{.Date}}'
+    gcflags:
+      - -e
+    flags:
+      - -trimpath
+      - -mod=readonly
     env:
-      - "CGO_ENABLED=0"
-      - "GO111MODULE=on"
-    main: "./cmd/privatebin"
-    binary: "privatebin"
+      - CGO_ENABLED=0
     goos:
-      - "windows"
-      - "linux"
-      - "darwin"
-      - "freebsd"
-      - "openbsd"
+      - windows
+      - linux
+      - darwin
+      - freebsd
+      - openbsd
     goarch:
-      - "amd64"
-      - "arm"
-      - "arm64"
+      - amd64
+      - arm
+      - arm64
     goarm:
       - "6"
       - "7"
-    flags:
-      - "-trimpath"
-      - "-mod=readonly"
-    ldflags:
-      - "-s -w -X main.version=v{{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}"
 
-release:
-  github:
-    owner: "gearnode"
-    name: "privatebin"
-  draft: true
-  prerelease: "auto"
-  
 archives:
-  - format: "tar.gz"
-    format_overrides:
-      - goos: "windows"
-        format: "zip"
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
     files:
-      - "LICENSE.txt"
-      - "README.md"
+      - LICENSE.txt
+      - README.md
+      - CHANGELOG.md
+      - man/*
 
 source:
   enabled: true
   name_template: "{{ .Tag }}-source"
-  format: "tar.gz"
+  format: tar.gz
   files:
-    - "vendor"
-    - "man"
+    - vendor
+    - man
 
 checksum:
-  algorithm: "sha512"
+  name_template: "checksums.txt"
+  algorithm: sha512
+
+sboms:
+  - artifacts: archive
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.json"
+    cmd: syft
+    args:
+      - "dir:."
+      - "--output=cyclonedx-json={{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.json"
+      - "--source-name={{ .ProjectName }}"
+      - "--source-version={{ .Version }}"
+
+signs:
+  - cmd: sh
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: "${artifact}.pem"
+    args:
+      - -c
+      - |
+        if [ "{{ .IsSnapshot }}" = "true" ]; then
+          echo "Skipping signing (snapshot: {{ .IsSnapshot }})"
+        else
+          cosign sign-blob --output-certificate="${certificate}" --output-signature="${signature}" "${artifact}" --yes
+        fi
+    artifacts: checksum
+    output: true
 
 changelog:
-  disable: true
+  use: custom
+  custom:
+    cmd: ./scripts/extract-changelog.sh
+    args:
+      - "{{ .Tag }}"
 
+release:
+  github:
+    owner: gearnode
+    name: privatebin
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## privatebin {{ .Tag }}
 
+    Release date: {{ .Date }}
+  footer: |
+    ---
+
+    **Full Changelog**: https://github.com/gearnode/privatebin/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    **Installation**: See the [README](https://github.com/gearnode/privatebin#installation) for installation instructions.
+
+    **Verification**: All artifacts are signed with Cosign. Use `cosign verify-blob` to verify the checksums.
