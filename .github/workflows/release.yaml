@@ -10,7 +10,7 @@ permissions:
   contents: "write"
 
 jobs:
-  goreleaser:
+  draft:
     runs-on: "ubuntu-latest"
     steps:
       - run: "sudo apt-get install pandoc"

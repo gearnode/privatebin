@@ -26,7 +26,6 @@ builds:
       - CGO_ENABLED=0
     goos:
       - windows
-      - linux
       - darwin
       - freebsd
       - openbsd
@@ -37,6 +36,27 @@ builds:
     goarm:
       - "6"
       - "7"
+  # Docker-specific builds for Linux only
+  - id: privatebin-docker
+    main: ./cmd/privatebin
+    binary: privatebin
+    ldflags:
+      - -s -w
+      - -X 'main.cliVersion={{.Version}}'
+      - -X 'main.commit={{.ShortCommit}}'
+      - -X 'main.date={{.Date}}'
+    gcflags:
+      - -e
+    flags:
+      - -trimpath
+      - -mod=readonly
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
 
 archives:
   - name_template: >-
@@ -67,11 +87,11 @@ checksum:
 sboms:
   - artifacts: archive
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.json"
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}_sbom.json"
     cmd: syft
     args:
       - "dir:."
-      - "--output=cyclonedx-json={{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_sbom.json"
+      - "--output=cyclonedx-json={{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}_sbom.json"
       - "--source-name={{ .ProjectName }}"
       - "--source-version={{ .Version }}"
 
@@ -91,18 +111,99 @@ signs:
     artifacts: checksum
     output: true
 
-changelog:
-  use: custom
-  custom:
-    cmd: ./scripts/extract-changelog.sh
+dockers:
+  - image_templates:
+      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-amd64"
+      - "ghcr.io/gearnode/privatebin:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description=A CLI for PrivateBin"
+      - "--label=org.opencontainers.image.url=https://github.com/gearnode/privatebin"
+      - "--label=org.opencontainers.image.source=https://github.com/gearnode/privatebin"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--label=org.opencontainers.image.created={{time "2006-01-02T15:04:05Z07:00"}}'
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.licenses=ISC"
+    ids:
+      - privatebin-docker
+    goos: linux
+    goarch: amd64
+    skip_push: "{{ .IsSnapshot }}"
+  - image_templates:
+      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-arm64"
+      - "ghcr.io/gearnode/privatebin:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description=A CLI for PrivateBin"
+      - "--label=org.opencontainers.image.url=https://github.com/gearnode/privatebin"
+      - "--label=org.opencontainers.image.source=https://github.com/gearnode/privatebin"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - '--label=org.opencontainers.image.created={{time "2006-01-02T15:04:05Z07:00"}}'
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.licenses=ISC"
+    ids:
+      - privatebin-docker
+    goos: linux
+    goarch: arm64
+    skip_push: "{{ .IsSnapshot }}"
+
+docker_manifests:
+  - name_template: "ghcr.io/gearnode/privatebin:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-amd64"
+      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-arm64"
+    skip_push: "{{ .IsSnapshot }}"
+  - name_template: "ghcr.io/gearnode/privatebin:latest"
+    image_templates:
+      - "ghcr.io/gearnode/privatebin:latest-amd64"
+      - "ghcr.io/gearnode/privatebin:latest-arm64"
+    skip_push: "{{ .IsSnapshot }}"
+
+docker_signs:
+  - id: images
+    cmd: sh
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    artifacts: images
+    output: true
     args:
-      - "{{ .Tag }}"
+      - -c
+      - |
+        if [ "{{ .IsSnapshot }}" = "true" ]; then
+          echo "Skipping Docker image signing (snapshot: {{ .IsSnapshot }})"
+        else
+          cosign sign "${artifact}@${digest}" --yes
+        fi
+  - id: manifests
+    cmd: sh
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    artifacts: manifests
+    output: true
+    args:
+      - -c
+      - |
+        if [ "{{ .IsSnapshot }}" = "true" ]; then
+          echo "Skipping Docker manifest signing (snapshot: {{ .IsSnapshot }})"
+        else
+          cosign sign "${artifact}@${digest}" --yes
+        fi
+
+changelog:
+  use: github
+  sort: asc
 
 release:
   github:
     owner: gearnode
     name: privatebin
-  draft: false
+  draft: true
   prerelease: auto
   mode: replace
   header: |
@@ -112,8 +213,16 @@ release:
   footer: |
     ---
 
+    ## Docker Images
+    - `ghcr.io/gearnode/privatebin:{{ .Tag }}` (multi-arch: linux/amd64, linux/arm64)
+    - `ghcr.io/gearnode/privatebin:latest` (multi-arch: linux/amd64, linux/arm64)
+
+    ### Architecture-specific images
+    - `ghcr.io/gearnode/privatebin:{{ .Tag }}-amd64`
+    - `ghcr.io/gearnode/privatebin:{{ .Tag }}-arm64`
+
     **Full Changelog**: https://github.com/gearnode/privatebin/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     **Installation**: See the [README](https://github.com/gearnode/privatebin#installation) for installation instructions.
 
-    **Verification**: All artifacts are signed with Cosign. Use `cosign verify-blob` to verify the checksums.
+    **Verification**: All artifacts and Docker images are signed with Cosign. Use `cosign verify-blob` for files or `cosign verify` for container images.
