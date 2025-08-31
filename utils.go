@@ -15,11 +15,9 @@
 package privatebin
 
 import (
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
-	"errors"
 	"net"
 	"net/http"
 	"runtime"
@@ -76,36 +74,3 @@ func defaultPooledClient(tlsConfig *tls.Config) *http.Client {
 	return &http.Client{Transport: transport}
 }
 
-// Golang standard library does not expose GCM with custom nonce and
-// tag size, even if it supported. Following code is a backport from
-// the Golang crypto module to allowing it.
-//
-// References:
-// - https://go-review.googlesource.com/c/go/+/116435
-// - https://github.com/golang/go/issues?q=NewGCMWithNonceAndTagSize
-// - https://github.com/golang/go/issues/42470
-
-const (
-	gcmBlockSize      = 16
-	gcmMinimumTagSize = 12 // NIST SP 800-38D recommends tags with 12 or more bytes.
-)
-
-type gcmAble interface {
-	NewGCM(nonceSize, tagSize int) (cipher.AEAD, error)
-}
-
-func newGCMWithNonceAndTagSize(cipher cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
-	if tagSize < gcmMinimumTagSize || tagSize > gcmBlockSize {
-		return nil, errors.New("cipher: incorrect tag size given to GCM")
-	}
-
-	if nonceSize <= 0 {
-		return nil, errors.New("cipher: the nonce can't have zero length, or the security of the key will be immediately compromised")
-	}
-
-	if cipher, ok := cipher.(gcmAble); ok {
-		return cipher.NewGCM(nonceSize, tagSize)
-	}
-
-	panic("non GCM crypto is not supported")
-}
