@@ -15,6 +15,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fix MIME type inference bug when no explicit MIME type is provided.
 - Adapt GCM implementation for Go 1.21+ compatibility after FIPS 140-3 refactoring broke access to internal gcmAble interface.
 
+### Changed
+
+- Update dependencies.
+- Upgrade go version from 1.23 to 1.25.
+
 ## [2.1.0] - 2025-08-15
 
 ### Added
