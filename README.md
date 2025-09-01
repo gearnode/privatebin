@@ -34,6 +34,12 @@ favorite AUR helper:
 - [privatebin-cli](https://aur.archlinux.org/packages/privatebin-cli/) - Release package
 - [privatebin-cli-bin](https://aur.archlinux.org/packages/privatebin-cli-bin) - Binary package
 
+### Ubuntu / Debian
+
+```
+apt-get install privatebin-cli
+```
+
 #### Example Installation:
 
 ```console
@@ -54,19 +60,19 @@ Assets section.
 
 ### Build from Source
 
-1. Clone the repository:
-   
-       git clone https://github.com/gearnode/privatebin.git
+1.  Clone the repository:
 
-2. Navigate to the project directory:
+    git clone https://github.com/gearnode/privatebin.git
+
+2.  Navigate to the project directory:
 
         cd privatebin
- 
-3. Build the project (binary and man pages):
+
+3.  Build the project (binary and man pages):
 
         make
 
-4. Install the binary and man pages on your system:
+4.  Install the binary and man pages on your system:
 
         make install
 
@@ -75,7 +81,6 @@ Assets section.
 Create a paste from a file:
 
     cat resume.txt | privatebin create
-
 
 Display a paste:
 
@@ -97,7 +102,3 @@ This project is released under the ISC license. See the
 [LICENSE.txt](LICENSE.txt) file for details. It's designed with both
 openness and freedom of use in mind, but with no warranty as per the
 ISC standard disclaimer.
-
-
-
-
