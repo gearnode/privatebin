@@ -34,16 +34,16 @@ favorite AUR helper:
 - [privatebin-cli](https://aur.archlinux.org/packages/privatebin-cli/) - Release package
 - [privatebin-cli-bin](https://aur.archlinux.org/packages/privatebin-cli-bin) - Binary package
 
-### Ubuntu / Debian
-
-```
-apt-get install privatebin-cli
-```
-
 #### Example Installation:
 
 ```console
 yay -Sy privatebin-cli
+```
+
+### Ubuntu / Debian
+
+```
+apt-get install privatebin-cli
 ```
 
 ### Prebuilt binary
