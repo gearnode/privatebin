@@ -17,6 +17,8 @@ jobs:
       id-token: "write"
     steps:
       - uses: "actions/checkout@v4"
+      - run: |
+          apt-get install pandoc
       - uses: "sigstore/cosign-installer@v3"
       - uses: "anchore/sbom-action/download-syft@v0"
       - uses: "docker/setup-qemu-action@v3"
