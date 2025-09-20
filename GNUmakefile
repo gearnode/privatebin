@@ -10,7 +10,7 @@ RM = rm -f
 
 DATETIME = "Sep 8, 2025"
 VERSION = 2.1.1
-LDFLAGS = -ldflags "-X 'main.cliVersion=$(VERSION)'"
+LDFLAGS = -ldflags "-X 'main.version=$(VERSION)'"
 
 BIN = bin/privatebin
 

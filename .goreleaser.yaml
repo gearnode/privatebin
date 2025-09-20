@@ -14,7 +14,7 @@ builds:
     binary: privatebin
     ldflags:
       - -s -w
-      - -X 'main.cliVersion={{.Version}}'
+      - -X 'main.version={{.Version}}'
       - -X 'main.commit={{.ShortCommit}}'
       - -X 'main.date={{.Date}}'
     gcflags:
