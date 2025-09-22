@@ -23,7 +23,7 @@ your workflow, enabling swift creation and management of pastes.
 managers, or from source. Follow the instructions below for your
 preferred method.
 
-### macOS
+### macOS & Lnux w. `brew`
 
 ```
 brew install privatebin-cli
