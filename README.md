@@ -23,6 +23,12 @@ your workflow, enabling swift creation and management of pastes.
 managers, or from source. Follow the instructions below for your
 preferred method.
 
+### macOS
+
+```
+brew install privatebin-cli
+```
+
 ### Arch Linux
 
 [![privatebin-cli on AUR](https://img.shields.io/aur/version/privatebin-cli?label=privatebin-cli)](https://aur.archlinux.org/packages/privatebin-cli/)
