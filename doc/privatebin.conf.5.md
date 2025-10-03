@@ -124,8 +124,13 @@ A bit more complete configuration file:
 # FILES
 
 _~/.config/privatebin/config.json_
-: Default location of the privatebin configuration. The file has to be
-created manually as it is not installed with a standard installation.
+: Default location of the privatebin configuration. The file has to be created manually as it is not installed with a standard installation.
+
+_/etc/privatebin/config.json_ (Linux/macOS)
+: System-wide configuration file location, used if the user config is not found.
+
+_C:\\ProgramData\\privatebin\\config.json_ (Windows)
+: System-wide configuration file location, used if the user config is not found.
 
 # AUTHORS
 

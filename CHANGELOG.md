@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Attempt to read a global system configuration file if `~/.config/privatebin/config.json` is not found. On Windows, `C:\ProgramData\privatebin\config.json` and on other operating systems, `/etc/privatebin/config.json`.
+
 ## [2.1.1] - 2025-09-08
 
 ### Fixed
