@@ -25,6 +25,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -83,6 +84,22 @@ var (
 				}
 
 				cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+
+				// Try to load from user's config first
+				_, err = os.Stat(cfgPath)
+				if err != nil {
+					// If user config doesn't exist, try system-wide config
+					var systemPath string
+					if runtime.GOOS == "windows" {
+						systemPath = path.Join("C:", "ProgramData", "privatebin", "config.json")
+					} else {
+						systemPath = path.Join(string(os.PathSeparator), "etc", "privatebin", "config.json")
+					}
+
+					if _, err := os.Stat(systemPath); err == nil {
+						cfgPath = systemPath
+					}
+				}
 			}
 
 			cfg, err := loadCfgFile(cfgPath)
@@ -303,7 +320,7 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "the command output format")
-	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
+	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json, or system-wide /etc/privatebin/config.json on Linux/macOS, C:\\ProgramData\\privatebin\\config.json on Windows)")
 	rootCmd.PersistentFlags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
 	rootCmd.PersistentFlags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
 

@@ -30,6 +30,8 @@ instances.
 **-c, -\-config** \<path\>
 : The path of the configuration file (default
   "~/.config/privatebin/config.json").
+  If not found, the CLI will also look for a system-wide configuration file at
+  "/etc/privatebin/config.json" (Linux/macOS) or "C:\\ProgramData\\privatebin\\config.json" (Windows).
 
 **-H, -\-header** \<key=value\>
 : The extra HTTP header fields to include in the request sent.
