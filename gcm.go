@@ -57,10 +57,6 @@ const (
 // establishing proper trust for cryptographic code in a security-focused project like
 // this would be challenging.
 func newGCMWithNonceOrTagSize(block cipher.Block, nonceSize, tagSize int) (cipher.AEAD, error) {
-	if nonceSize == gcmStandardNonceSize && tagSize == gcmStandardTagSize {
-		return cipher.NewGCM(block)
-	}
-
 	// For standard parameters, use the standard implementation
 	if nonceSize == gcmStandardNonceSize && tagSize == gcmStandardTagSize {
 		return cipher.NewGCM(block)
