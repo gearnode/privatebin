@@ -6,7 +6,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	go.gearno.de/encoding/base58 v0.1.0
-	golang.org/x/crypto v0.41.0
+	golang.org/x/crypto v0.45.0
 )
 
 require (
