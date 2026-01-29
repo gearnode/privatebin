@@ -148,6 +148,24 @@ type (
 	}
 )
 
+func (p *showPasteRequestMeta) UnmarshalJSON(data []byte) error {
+	// First, check for an empty array literal.
+	if string(data) == "[]" {
+		// Empty slice – nothing to do, keep zero values.
+		return nil
+	}
+
+	// Otherwise try to unmarshal as the regular object.
+	// We use an alias to avoid infinite recursion.
+	type alias showPasteRequestMeta
+	var tmp alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err // propagate parsing errors
+	}
+	*p = showPasteRequestMeta(tmp)
+	return nil
+}
+
 func WithBasicAuth(username, password string) Option {
 	return func(c *Client) {
 		c.username = username
