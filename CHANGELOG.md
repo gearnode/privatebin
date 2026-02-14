@@ -21,6 +21,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   defaults. Supports `--host` to set the default instance and `--force` to
   overwrite an existing file.
 
+### Fixed
+
+- Fix error when open paste who never expire
+
 ### Changed
 
 - The CLI now works without a configuration file, falling back to sensible
