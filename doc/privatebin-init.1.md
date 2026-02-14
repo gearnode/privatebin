@@ -13,8 +13,9 @@ section: 1
 
 # DESCRIPTION
 Generate a configuration file with sensible defaults and write it to
-the default location at _~/.config/privatebin/config.json_. If the
-**-\-config** flag is set, the file is written to that path instead.
+the preferred default location at _~/.config/privatebin/config.json_.
+If the **-\-config** flag is set, the file is written to that path
+instead.
 
 The generated configuration contains a single bin entry pointing to the
 host specified by **-\-host** (defaulting to _https://privatebin.net_),

@@ -147,11 +147,20 @@ Configuration using a SOCKS5 proxy (e.g. TOR):
 
 # FILES
 
-_~/.config/privatebin/config.json_
-: Default location of the privatebin configuration. The file has to be
-created manually as it is not installed with a standard installation.
-The configuration file is optional; when absent, the CLI uses sensible
-defaults (expire: 1day, formatter: plaintext, gzip: enabled).
+The CLI searches for the configuration file in the following locations,
+in order, and uses the first one found:
+
+1. _$HOME/.config/privatebin/config.json_
+2. _$XDG\_CONFIG\_HOME/privatebin/config.json_ (if **XDG\_CONFIG\_HOME** is set)
+3. The platform-native user configuration directory (as returned by
+   Go's **os.UserConfigDir**): _$HOME/.config_ on Linux,
+   _$HOME/Library/Application Support_ on macOS, _%AppData%_ on Windows
+4. Each directory in **$XDG\_CONFIG\_DIRS** (defaults to _/etc/xdg_)
+
+Duplicate paths are skipped. When no **-\-config** flag is provided and
+no file is found, the CLI falls back to sensible defaults (expire:
+1day, formatter: plaintext, gzip: enabled). The **privatebin init**
+command writes to the first candidate path by default.
 
 # AUTHORS
 

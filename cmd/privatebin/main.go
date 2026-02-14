@@ -24,7 +24,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -82,12 +81,12 @@ var (
 			}
 
 			if cfgPath == "" {
-				homeDir, err := os.UserHomeDir()
+				p, err := locateConfigFile()
 				if err != nil {
-					return fmt.Errorf("cannot get user home directory: %w", err)
+					return err
 				}
 
-				cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+				cfgPath = p
 			}
 
 			cfg, err := loadCfgFile(cfgPath)
@@ -225,18 +224,18 @@ var (
 					)
 				}
 
-			_ = json.NewEncoder(os.Stdout).Encode(
-				map[string]any{
-					"paste_id": result.PasteID,
-					"paste": map[string]string{
-						"attachment_name": result.Paste.AttachmentName,
-						"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachment),
-						"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
+				_ = json.NewEncoder(os.Stdout).Encode(
+					map[string]any{
+						"paste_id": result.PasteID,
+						"paste": map[string]string{
+							"attachment_name": result.Paste.AttachmentName,
+							"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachment),
+							"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
+						},
+						"comment_count": result.CommentCount,
+						"comments":      comments,
 					},
-					"comment_count": result.CommentCount,
-					"comments":      comments,
-				},
-			)
+				)
 			}
 			return nil
 		},
@@ -323,15 +322,15 @@ var (
 
 			switch output {
 			case "":
-			_, _ = fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
+				_, _ = fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
 			case "json":
-			_ = json.NewEncoder(os.Stdout).Encode(
-				map[string]any{
-					"paste_id":     result.PasteID,
-					"paste_url":    result.PasteURL.String(),
-					"delete_token": result.DeleteToken,
-				},
-			)
+				_ = json.NewEncoder(os.Stdout).Encode(
+					map[string]any{
+						"paste_id":     result.PasteID,
+						"paste_url":    result.PasteURL.String(),
+						"delete_token": result.DeleteToken,
+					},
+				)
 			}
 
 			return nil
@@ -344,12 +343,12 @@ var (
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if cfgPath == "" {
-				homeDir, err := os.UserHomeDir()
+				p, err := locateConfigFile()
 				if err != nil {
-					return fmt.Errorf("cannot get user home directory: %w", err)
+					return err
 				}
 
-				cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+				cfgPath = p
 			}
 
 			return nil
@@ -396,9 +395,69 @@ var (
 	}
 )
 
+func configFileCandidates() ([]string, error) {
+	var candidates []string
+	seen := make(map[string]bool)
+
+	add := func(p string) {
+		if !seen[p] {
+			seen[p] = true
+			candidates = append(candidates, p)
+		}
+	}
+
+	// $HOME/.config: conventional location for CLI tools.
+	if home, err := os.UserHomeDir(); err == nil {
+		add(filepath.Join(home, ".config", "privatebin", "config.json"))
+	}
+
+	// XDG_CONFIG_HOME: user-specific config directory override.
+	if dir := os.Getenv("XDG_CONFIG_HOME"); dir != "" {
+		add(filepath.Join(dir, "privatebin", "config.json"))
+	}
+
+	// Platform-native user config directory.
+	if dir, err := os.UserConfigDir(); err == nil {
+		add(filepath.Join(dir, "privatebin", "config.json"))
+	}
+
+	// XDG_CONFIG_DIRS: system-wide config directories (default /etc/xdg).
+	xdgDirs := os.Getenv("XDG_CONFIG_DIRS")
+	if xdgDirs == "" {
+		xdgDirs = "/etc/xdg"
+	}
+	for _, dir := range filepath.SplitList(xdgDirs) {
+		if dir != "" {
+			add(filepath.Join(dir, "privatebin", "config.json"))
+		}
+	}
+
+	if len(candidates) == 0 {
+		return nil, fmt.Errorf("cannot determine configuration file location")
+	}
+
+	return candidates, nil
+}
+
+func locateConfigFile() (string, error) {
+	candidates, err := configFileCandidates()
+	if err != nil {
+		return "", err
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
+	}
+
+	// No existing file found; return the preferred default for creation.
+	return candidates[0], nil
+}
+
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "the command output format")
-	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
+	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is ~/.config/privatebin/config.json)")
 	rootCmd.PersistentFlags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
 	rootCmd.PersistentFlags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
 	rootCmd.PersistentFlags().StringVar(&proxy, "proxy", "", "proxy URL to use for requests (e.g. socks5://127.0.0.1:9050 for TOR)")

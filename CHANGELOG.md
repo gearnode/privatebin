@@ -29,6 +29,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The CLI now works without a configuration file, falling back to sensible
   defaults (expire: 1day, formatter: plaintext, gzip: enabled).
+- Configuration file lookup now follows the XDG Base Directory Specification.
+  The CLI searches `$HOME/.config/privatebin/config.json`, then
+  `$XDG_CONFIG_HOME/privatebin/config.json`, the platform-native user config
+  directory, and finally `$XDG_CONFIG_DIRS` (defaults to `/etc/xdg`).
 - Remove duplicate error output in the main function.
 
 ### Security

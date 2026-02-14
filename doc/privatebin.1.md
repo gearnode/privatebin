@@ -29,8 +29,11 @@ instances.
 : The privatebin instance name.
 
 **-c, -\-config** \<path\>
-: The path of the configuration file (default
-  "~/.config/privatebin/config.json").
+: The path of the configuration file. When not set, the CLI searches
+  _$HOME/.config/privatebin/config.json_, then
+  _$XDG\_CONFIG\_HOME/privatebin/config.json_, the platform-native user
+  configuration directory, and finally the directories listed in
+  **$XDG\_CONFIG\_DIRS** (see **privatebin.conf**(5) for details).
 
 **-H, -\-header** \<key=value\>
 : The extra HTTP header fields to include in the request sent.
@@ -66,6 +69,17 @@ Create a paste through a SOCKS5 proxy (e.g. TOR):
     $ cat example.txt | privatebin --proxy socks5://127.0.0.1:9050 create
 
 # ENVIRONMENT
+
+**XDG\_CONFIG\_HOME**
+: User-specific configuration directory. When set, the CLI searches
+  this directory for _privatebin/config.json_ (after checking
+  _$HOME/.config_). See **privatebin.conf**(5) for the full search
+  order.
+
+**XDG\_CONFIG\_DIRS**
+: Colon-separated list of system-wide configuration directories.
+  Defaults to _/etc/xdg_ when not set. Each directory is searched for
+  _privatebin/config.json_.
 
 **HTTP_PROXY**, **HTTPS_PROXY**, **ALL_PROXY**
 : When no **-\-proxy** flag is provided and no **proxy** configuration
