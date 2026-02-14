@@ -37,6 +37,7 @@ type (
 		GZip              *bool             `json:"gzip"`
 		SkipTLSVerify     *bool             `json:"skip-tls-verify"`
 		Formatter         string            `json:"formatter"`
+		Proxy             string            `json:"proxy"`
 		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
 
@@ -48,6 +49,7 @@ type (
 		GZip              bool              `json:"gzip"`
 		SkipTLSVerify     bool              `json:"skip-tls-verify"`
 		Formatter         string            `json:"formatter"`
+		Proxy             string            `json:"proxy"`
 		ExtraHeaderFields map[string]string `json:"extra-header-fields"`
 	}
 )
@@ -110,6 +112,10 @@ func loadCfgFile(path string) (*Cfg, error) {
 
 		if binCfg.SkipTLSVerify == nil {
 			binCfg.SkipTLSVerify = &cfg.SkipTLSVerify
+		}
+
+		if binCfg.Proxy == "" {
+			binCfg.Proxy = cfg.Proxy
 		}
 
 		if binCfg.ExtraHeaderFields == nil {

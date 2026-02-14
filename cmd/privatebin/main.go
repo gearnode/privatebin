@@ -62,6 +62,7 @@ var (
 	insecure      bool
 	confirmBurn   bool
 	skipTLSVerify bool
+	proxy         string
 
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
@@ -133,6 +134,23 @@ var (
 				clientOptions = append(
 					clientOptions,
 					privatebin.WithTLSConfig(tlsConfig),
+				)
+			}
+
+			proxyAddr := binCfg.Proxy
+			if proxy != "" {
+				proxyAddr = proxy
+			}
+
+			if proxyAddr != "" {
+				proxyURL, err := url.Parse(proxyAddr)
+				if err != nil {
+					return fmt.Errorf("cannot parse proxy url %q: %w", proxyAddr, err)
+				}
+
+				clientOptions = append(
+					clientOptions,
+					privatebin.WithProxyURL(*proxyURL),
 				)
 			}
 
@@ -306,6 +324,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "the config file (default is $HOME/.config/privatebin/config.json)")
 	rootCmd.PersistentFlags().StringVarP(&binName, "bin", "b", "", "the name of the privatebin instance to use (default \"\")")
 	rootCmd.PersistentFlags().StringSliceVarP(&extraHeaderFields, "header", "H", []string{}, "extra HTTP header fields to include in the request sent")
+	rootCmd.PersistentFlags().StringVar(&proxy, "proxy", "", "proxy URL to use for requests (e.g. socks5://127.0.0.1:9050 for TOR)")
 
 	createCmd.Flags().StringVar(&expire, "expire", "", "the time to live of the paste")
 	createCmd.Flags().BoolVar(&openDiscussion, "open-discussion", false, "enable discussion on the paste")

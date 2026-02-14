@@ -11,7 +11,8 @@ section: 1
 # SYNOPSIS
 **privatebin** [-h | -\-help] [-v | -\-version] [-\-bin=\<name\>]\
 \ \ \ \ \ \ \ \ \ \ \ [-\-config=\<filename\>] [-\-header=\<key=value\>]\
-\ \ \ \ \ \ \ \ \ \ \ [-\-output=\<format\>] \<command\> [\<args\>]
+\ \ \ \ \ \ \ \ \ \ \ [-\-output=\<format\>] [-\-proxy=\<url\>]\
+\ \ \ \ \ \ \ \ \ \ \ \<command\> [\<args\>]
 
 # DESCRIPTION
 A minimalist, open source command line interface for **PrivateBin**
@@ -37,6 +38,12 @@ instances.
 **-o, -\-output** \<format\>
 : The output format can be \"\" or \"json\" (default \"\").
 
+**-\-proxy** \<url\>
+: Proxy URL to use for requests. Supports HTTP, HTTPS, and SOCKS5
+  schemes (e.g. socks5://127.0.0.1:9050 for TOR). This flag overrides
+  the proxy value from the configuration file and the **HTTP_PROXY**,
+  **HTTPS_PROXY**, and **ALL_PROXY** environment variables.
+
 # COMMANDS
 
 **privatebin-create(1)**
@@ -53,6 +60,20 @@ occurs.
 Create a paste on the default privatebin instance:
 
     $ cat example.txt | privatebin create
+
+Create a paste through a SOCKS5 proxy (e.g. TOR):
+
+    $ cat example.txt | privatebin --proxy socks5://127.0.0.1:9050 create
+
+# ENVIRONMENT
+
+**HTTP_PROXY**, **HTTPS_PROXY**, **ALL_PROXY**
+: When no **-\-proxy** flag is provided and no **proxy** configuration
+  value is set, the standard proxy environment variables are honored.
+
+**NO_PROXY**
+: A comma-separated list of host names or IP addresses for which the
+  proxy should not be used.
 
 # SEE ALSO
 **privatebin.conf**(5)

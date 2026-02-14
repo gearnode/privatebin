@@ -8,6 +8,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `--proxy` flag for explicit proxy configuration (supports HTTP, HTTPS,
+  and SOCKS5 schemes). Useful for routing traffic through TOR
+  (e.g. `socks5://127.0.0.1:9050`).
+- Add `proxy` configuration option in config file (both top-level and per-bin).
+- Proxy resolution priority: `--proxy` flag > config file > environment
+  variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`).
+
 ## [2.1.1] - 2025-09-08
 
 ### Fixed

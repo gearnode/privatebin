@@ -52,6 +52,7 @@ type (
 		customHTTPHeaderFields map[string]string
 		userAgent              string
 		tlsConfig              *tls.Config
+		proxyURL               *url.URL
 	}
 
 	Option func(c *Client)
@@ -173,6 +174,12 @@ func WithTLSConfig(tlsConfig *tls.Config) Option {
 	}
 }
 
+func WithProxyURL(proxyURL url.URL) Option {
+	return func(c *Client) {
+		c.proxyURL = &proxyURL
+	}
+}
+
 func NewClient(endpoint url.URL, options ...Option) *Client {
 	client := &Client{
 		endpoint:               endpoint,
@@ -183,7 +190,7 @@ func NewClient(endpoint url.URL, options ...Option) *Client {
 		option(client)
 	}
 
-	client.httpClient = defaultPooledClient(client.tlsConfig)
+	client.httpClient = defaultPooledClient(client.tlsConfig, client.proxyURL)
 
 	return client
 }

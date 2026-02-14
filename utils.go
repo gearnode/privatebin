@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"net"
 	"net/http"
+	"net/url"
 	"runtime"
 	"time"
 )
@@ -52,15 +53,20 @@ func decode64(s string) ([]byte, error) {
 	return base64.RawStdEncoding.DecodeString(s)
 }
 
-func defaultPooledClient(tlsConfig *tls.Config) *http.Client {
+func defaultPooledClient(tlsConfig *tls.Config, proxyURL *url.URL) *http.Client {
 	dial := &net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
 		DualStack: true,
 	}
 
+	proxyFunc := http.ProxyFromEnvironment
+	if proxyURL != nil {
+		proxyFunc = http.ProxyURL(proxyURL)
+	}
+
 	transport := &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
+		Proxy:                 proxyFunc,
 		DialContext:           dial.DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,

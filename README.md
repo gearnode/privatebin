@@ -92,6 +92,10 @@ Display a paste:
 
     privatebin show https://privatebin.net/?420fc9597328c72f#EezApNVTTRUuEkt1jj7r9vSfewLBvUohDSXWuvPEs1bF
 
+Create a paste through a SOCKS5 proxy (e.g. TOR):
+
+    cat resume.txt | privatebin --proxy socks5://127.0.0.1:9050 create
+
 ## Documentation
 
 For detailed information on all CLI commands and features, check out

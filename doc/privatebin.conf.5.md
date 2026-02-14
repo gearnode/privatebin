@@ -37,6 +37,12 @@ instance configured in the **config.json**.
 **skip-tls-verify** _bool_ (default: false)
 : Skip TLS certificate verification when connecting to the privatebin instance.
 
+**proxy** _string_
+: Proxy URL to use for all requests. Supports HTTP, HTTPS, and SOCKS5
+  schemes (e.g. "socks5://127.0.0.1:9050" for TOR). When set, overrides
+  the **HTTP_PROXY**, **HTTPS_PROXY**, and **ALL_PROXY** environment
+  variables. Can be overridden per-bin or by the **-\-proxy** CLI flag.
+
 **extra-header-fields** _object<string, string>_
 : The extra HTTP header fields to include in the request sent.
 
@@ -71,6 +77,12 @@ instance configured in the **config.json**.
 
 **skip-tls-verify** _bool_
 : Skip TLS certificate verification when connecting to the privatebin instance.
+
+**proxy** _string_
+: Proxy URL to use for requests to this bin instance. Supports HTTP,
+  HTTPS, and SOCKS5 schemes. Overrides the top-level **proxy** value
+  and the proxy environment variables. Can be overridden by the
+  **-\-proxy** CLI flag.
 
 **extra-header-fields** _object<string, string>_
 : The extra HTTP header fields to include in the request sent.
@@ -119,6 +131,18 @@ A bit more complete configuration file:
             },
         ],
         "burn-after-reading": true
+    }
+
+Configuration using a SOCKS5 proxy (e.g. TOR):
+
+    {
+        "proxy": "socks5://127.0.0.1:9050",
+        "bin": [
+            {
+                "name": "",
+                "host": "https://privatebin.net"
+            }
+        ]
     }
 
 # FILES
