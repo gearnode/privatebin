@@ -76,17 +76,17 @@ func findBinCfg(cfg *Cfg, name string) (*BinCfg, error) {
 func loadCfgFile(path string) (*Cfg, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open file: %v", err)
+		return nil, fmt.Errorf("cannot open file: %w", err)
 	}
 
 	value, err := io.ReadAll(file)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read file: %v", err)
+		return nil, fmt.Errorf("cannot read file: %w", err)
 	}
 
 	cfg := defaultConfig()
 	if err := json.Unmarshal(value, cfg); err != nil {
-		return nil, fmt.Errorf("cannot unmarshal file: %v", err)
+		return nil, fmt.Errorf("cannot unmarshal file: %w", err)
 	}
 
 	for i, binCfg := range cfg.Bin {
