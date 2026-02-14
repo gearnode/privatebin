@@ -8,6 +8,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-02-14
+
 ### Added
 
 - Add support for including a text message alongside an attachment when creating
