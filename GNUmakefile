@@ -50,7 +50,7 @@ test:
 	$(GO) test -v -race ./...
 
 test-fuzz:
-	@for fuzz in $$($(GO) test -list=Fuzz); do \
+	@for fuzz in $$($(GO) test -list '^Fuzz' | grep '^Fuzz'); do \
 		echo "Running $$fuzz"; \
-		$(GO) test -fuzz=$$fuzz -fuzztime=30s || exit 1; \
+		$(GO) test -fuzz="^$$fuzz$$" -fuzztime=30s -timeout=120s || exit 1; \
 	done
