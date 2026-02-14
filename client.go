@@ -116,7 +116,26 @@ type (
 		Created    int `json:"created"`
 		TimeToLive int `json:"time_to_live"`
 	}
+)
 
+func (m *showPasteRequestMeta) UnmarshalJSON(data []byte) error {
+	//Some PrivateBin servers (PHP) return an empty JSON array [] instead of an
+	// object {} when the meta field has no data.
+	if bytes.Equal(bytes.TrimSpace(data), []byte("[]")) {
+		return nil
+	}
+
+	type alias showPasteRequestMeta
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+
+	*m = showPasteRequestMeta(a)
+	return nil
+}
+
+type (
 	showPasteResponse struct {
 		Status        int                        `json:"status"`
 		Message       string                     `json:"message"`
