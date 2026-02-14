@@ -209,7 +209,7 @@ var (
 
 			switch output {
 			case "":
-				fmt.Fprintf(os.Stdout, "%s\n", result.Paste.Data)
+				_, _ = fmt.Fprintf(os.Stdout, "%s\n", result.Paste.Data)
 			case "json":
 				var comments []map[string]string
 				for _, comment := range result.Comments {
@@ -225,18 +225,18 @@ var (
 					)
 				}
 
-				json.NewEncoder(os.Stdout).Encode(
-					map[string]any{
-						"paste_id": result.PasteID,
-						"paste": map[string]string{
-							"attachment_name": result.Paste.AttachmentName,
-							"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachment),
-							"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
-						},
-						"comment_count": result.CommentCount,
-						"comments":      comments,
+			_ = json.NewEncoder(os.Stdout).Encode(
+				map[string]any{
+					"paste_id": result.PasteID,
+					"paste": map[string]string{
+						"attachment_name": result.Paste.AttachmentName,
+						"attachment":      base64.StdEncoding.EncodeToString(result.Paste.Attachment),
+						"data":            base64.StdEncoding.EncodeToString(result.Paste.Data),
 					},
-				)
+					"comment_count": result.CommentCount,
+					"comments":      comments,
+				},
+			)
 			}
 			return nil
 		},
@@ -323,15 +323,15 @@ var (
 
 			switch output {
 			case "":
-				fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
+			_, _ = fmt.Fprintf(os.Stdout, "%s\n", result.PasteURL.String())
 			case "json":
-				json.NewEncoder(os.Stdout).Encode(
-					map[string]any{
-						"paste_id":     result.PasteID,
-						"paste_url":    result.PasteURL.String(),
-						"delete_token": result.DeleteToken,
-					},
-				)
+			_ = json.NewEncoder(os.Stdout).Encode(
+				map[string]any{
+					"paste_id":     result.PasteID,
+					"paste_url":    result.PasteURL.String(),
+					"delete_token": result.DeleteToken,
+				},
+			)
 			}
 
 			return nil
@@ -389,7 +389,7 @@ var (
 				return fmt.Errorf("cannot write configuration file: %w", err)
 			}
 
-			fmt.Fprintf(os.Stdout, "%s\n", cfgPath)
+			_, _ = fmt.Fprintf(os.Stdout, "%s\n", cfgPath)
 
 			return nil
 		},

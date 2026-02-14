@@ -242,7 +242,7 @@ func (c *Client) ShowPaste(
 	if err != nil {
 		return nil, fmt.Errorf("cannot execute http request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	var pasteResponse showPasteResponse
 
@@ -441,7 +441,7 @@ func (c *Client) CreatePaste(
 	if err != nil {
 		return nil, fmt.Errorf("cannot execute http request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	pasteResponse := createPasteResponse{}
 	err = json.NewDecoder(res.Body).Decode(&pasteResponse)
@@ -531,7 +531,7 @@ func decrypt(masterKey []byte, ct string, adata []byte, spec Spec) ([]byte, erro
 	case CompressionAlgorithmGZip:
 		buf := bytes.NewBuffer(cipherText)
 		fr := flate.NewReader(buf)
-		defer fr.Close()
+		defer func() { _ = fr.Close() }()
 		cipherText, err = io.ReadAll(fr)
 		if err != nil {
 			return nil, fmt.Errorf("cannot read gzip: %w", err)
