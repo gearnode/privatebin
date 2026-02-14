@@ -65,6 +65,9 @@ var (
 	skipTLSVerify bool
 	proxy         string
 
+	force    bool
+	initHost string
+
 	rootCmd = &cobra.Command{
 		Use:     "privatebin",
 		Version: fmt.Sprintf("%s-%s (%s)", version, commit, date),
@@ -334,6 +337,63 @@ var (
 			return nil
 		},
 	}
+
+	initCmd = &cobra.Command{
+		Use:          "init",
+		Short:        "Generate a configuration file",
+		SilenceUsage: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if cfgPath == "" {
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					return fmt.Errorf("cannot get user home directory: %w", err)
+				}
+
+				cfgPath = path.Join(homeDir, ".config", "privatebin", "config.json")
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !force {
+				if _, err := os.Stat(cfgPath); err == nil {
+					return fmt.Errorf("configuration file already exists at %s, use --force to overwrite", cfgPath)
+				}
+			}
+
+			cfg := map[string]any{
+				"bin": []map[string]any{
+					{
+						"name": "",
+						"host": initHost,
+					},
+				},
+				"expire":    "1day",
+				"formatter": "plaintext",
+				"gzip":      true,
+			}
+
+			data, err := json.MarshalIndent(cfg, "", "  ")
+			if err != nil {
+				return fmt.Errorf("cannot marshal configuration: %w", err)
+			}
+
+			data = append(data, '\n')
+
+			dir := filepath.Dir(cfgPath)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return fmt.Errorf("cannot create configuration directory: %w", err)
+			}
+
+			if err := os.WriteFile(cfgPath, data, 0o600); err != nil {
+				return fmt.Errorf("cannot write configuration file: %w", err)
+			}
+
+			fmt.Fprintf(os.Stdout, "%s\n", cfgPath)
+
+			return nil
+		},
+	}
 )
 
 func init() {
@@ -358,7 +418,10 @@ func init() {
 	showCmd.Flags().StringVar(&password, "password", "", "the paste password")
 	showCmd.Flags().BoolVar(&skipTLSVerify, "skip-tls-verify", false, "skip TLS certificate verification")
 
-	rootCmd.AddCommand(showCmd, createCmd)
+	initCmd.Flags().BoolVar(&force, "force", false, "overwrite existing configuration file")
+	initCmd.Flags().StringVar(&initHost, "host", "https://privatebin.net", "the host of the default privatebin instance")
+
+	rootCmd.AddCommand(showCmd, createCmd, initCmd)
 }
 
 func main() {
