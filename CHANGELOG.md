@@ -17,6 +17,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Proxy resolution priority: `--proxy` flag > config file > environment
   variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`).
 - Add a clear error message when creating a paste without a configured host.
+- Add `privatebin init` command to generate a configuration file with sensible
+  defaults. Supports `--host` to set the default instance and `--force` to
+  overwrite an existing file.
 
 ### Changed
 
