@@ -31,6 +31,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   defaults (expire: 1day, formatter: plaintext, gzip: enabled).
 - Remove duplicate error output in the main function.
 
+### Security
+
+- Upgrade to go1.26
+- Upgrade go dependencies
+
 ## [2.1.1] - 2025-09-08
 
 ### Fixed
