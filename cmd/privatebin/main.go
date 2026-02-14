@@ -242,9 +242,10 @@ var (
 	}
 
 	createCmd = &cobra.Command{
-		Use:          "create",
+		Use:          "create [message]",
 		Short:        "Create a paste",
 		SilenceUsage: true,
+		Args:         cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if binCfg.Host == "" {
 				return fmt.Errorf("no privatebin instance configured, please create a configuration file or use the --config flag")
@@ -272,6 +273,7 @@ var (
 
 			var (
 				attachementName string
+				message         []byte
 				data            []byte
 				err             error
 			)
@@ -301,8 +303,16 @@ var (
 				}
 			}
 
+			if len(args) > 0 {
+				if !cmd.Flags().Changed("attachment") {
+					return fmt.Errorf("positional message argument can only be used with --attachment flag")
+				}
+				message = []byte(args[0])
+			}
+
 			options := privatebin.CreatePasteOptions{
 				AttachmentName:   attachementName,
+				Message:          message,
 				Formatter:        binCfg.Formatter,
 				Expire:           binCfg.Expire,
 				OpenDiscussion:   *binCfg.OpenDiscussion,

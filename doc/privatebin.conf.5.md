@@ -150,12 +150,12 @@ Configuration using a SOCKS5 proxy (e.g. TOR):
 The CLI searches for the configuration file in the following locations,
 in order, and uses the first one found:
 
-1. _$HOME/.config/privatebin/config.json_
-2. _$XDG\_CONFIG\_HOME/privatebin/config.json_ (if **XDG\_CONFIG\_HOME** is set)
+1. *$HOME/.config/privatebin/config.json*
+2. *$XDG\_CONFIG\_HOME/privatebin/config.json* (if **XDG\_CONFIG\_HOME** is set)
 3. The platform-native user configuration directory (as returned by
-   Go's **os.UserConfigDir**): _$HOME/.config_ on Linux,
-   _$HOME/Library/Application Support_ on macOS, _%AppData%_ on Windows
-4. Each directory in **$XDG\_CONFIG\_DIRS** (defaults to _/etc/xdg_)
+   Go's **os.UserConfigDir**): *$HOME/.config* on Linux,
+   *$HOME/Library/Application Support* on macOS, *%AppData%* on Windows
+4. Each directory in **$XDG\_CONFIG\_DIRS** (defaults to */etc/xdg*)
 
 Duplicate paths are skipped. When no **-\-config** flag is provided and
 no file is found, the CLI falls back to sensible defaults (expire:

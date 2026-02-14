@@ -12,10 +12,12 @@ section: 1
 **privatebin create** [-h | -help]  [-\-burn-after-reading] [-\-expire=\<time\>]\
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-\-formatter=\<format\>] [-\-open-discussion]\
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-\-password=\<password\>] [-\-gzip] [-\-attachment] \
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-\-filename=\<filename\>] *STDIN*
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [-\-filename=\<filename\>] [message] *STDIN*
 
 # DESCRIPTION
-Create paste.
+Create paste. When used with **-\-attachment**, an optional positional
+argument can be provided to include a text message alongside the
+attachment.
 
 # OPTIONS
 **-h, -\-help**
@@ -50,6 +52,10 @@ Create paste.
 Create a paste on the default privatebin instance:
 
     $ cat example.txt | privatebin create
+
+Create an attachment with an accompanying message:
+
+    $ privatebin create --attachment --filename example.txt "Here is the document"
 
 # SEE ALSO
 **privatebin.conf**(5)

@@ -59,6 +59,7 @@ type (
 
 	CreatePasteOptions struct {
 		AttachmentName   string
+		Message          []byte
 		Formatter        string
 		Expire           string
 		OpenDiscussion   bool
@@ -338,7 +339,7 @@ func (c *Client) CreatePaste(
 	var paste Paste
 
 	if opts.AttachmentName != "" {
-		paste = Paste{nil, data, opts.AttachmentName, ""}
+		paste = Paste{opts.Message, data, opts.AttachmentName, ""}
 	} else {
 		paste = Paste{data, nil, "", ""}
 	}

@@ -10,6 +10,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Add support for including a text message alongside an attachment when creating
+  a paste. Pass the message as a positional argument:
+  `privatebin create --attachment --filename example.txt "Message to send along"`.
 - Add `--proxy` flag for explicit proxy configuration (supports HTTP, HTTPS,
   and SOCKS5 schemes). Useful for routing traffic through TOR
   (e.g. `socks5://127.0.0.1:9050`).
