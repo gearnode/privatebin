@@ -36,6 +36,11 @@ builds:
     goarm:
       - "6"
       - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: darwin
+        goarch: arm
   # Docker-specific builds for Linux only
   - id: privatebin-docker
     main: ./cmd/privatebin
@@ -111,59 +116,26 @@ signs:
     artifacts: checksum
     output: true
 
-dockers:
-  - image_templates:
-      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-amd64"
-      - "ghcr.io/gearnode/privatebin:latest-amd64"
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.description=A CLI for PrivateBin"
-      - "--label=org.opencontainers.image.url=https://github.com/gearnode/privatebin"
-      - "--label=org.opencontainers.image.source=https://github.com/gearnode/privatebin"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--label=org.opencontainers.image.created={{time "2006-01-02T15:04:05Z07:00"}}'
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.licenses=ISC"
+dockers_v2:
+  - images:
+      - "ghcr.io/gearnode/privatebin"
+    tags:
+      - "{{ .Tag }}"
+      - latest
     ids:
       - privatebin-docker
-    goos: linux
-    goarch: amd64
-    skip_push: "{{ .IsSnapshot }}"
-  - image_templates:
-      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-arm64"
-      - "ghcr.io/gearnode/privatebin:latest-arm64"
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--platform=linux/arm64"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.description=A CLI for PrivateBin"
-      - "--label=org.opencontainers.image.url=https://github.com/gearnode/privatebin"
-      - "--label=org.opencontainers.image.source=https://github.com/gearnode/privatebin"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - '--label=org.opencontainers.image.created={{time "2006-01-02T15:04:05Z07:00"}}'
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.licenses=ISC"
-    ids:
-      - privatebin-docker
-    goos: linux
-    goarch: arm64
-    skip_push: "{{ .IsSnapshot }}"
-
-docker_manifests:
-  - name_template: "ghcr.io/gearnode/privatebin:{{ .Tag }}"
-    image_templates:
-      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-amd64"
-      - "ghcr.io/gearnode/privatebin:{{ .Tag }}-arm64"
-    skip_push: "{{ .IsSnapshot }}"
-  - name_template: "ghcr.io/gearnode/privatebin:latest"
-    image_templates:
-      - "ghcr.io/gearnode/privatebin:latest-amd64"
-      - "ghcr.io/gearnode/privatebin:latest-arm64"
-    skip_push: "{{ .IsSnapshot }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.title": "{{.ProjectName}}"
+      "org.opencontainers.image.description": "A CLI for PrivateBin"
+      "org.opencontainers.image.url": "https://github.com/gearnode/privatebin"
+      "org.opencontainers.image.source": "https://github.com/gearnode/privatebin"
+      "org.opencontainers.image.version": "{{.Version}}"
+      "org.opencontainers.image.created": '{{time "2006-01-02T15:04:05Z07:00"}}'
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.licenses": "ISC"
 
 docker_signs:
   - id: images
