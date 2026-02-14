@@ -16,6 +16,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add `proxy` configuration option in config file (both top-level and per-bin).
 - Proxy resolution priority: `--proxy` flag > config file > environment
   variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`).
+- Add a clear error message when creating a paste without a configured host.
+
+### Changed
+
+- The CLI now works without a configuration file, falling back to sensible
+  defaults (expire: 1day, formatter: plaintext, gzip: enabled).
+- Remove duplicate error output in the main function.
 
 ## [2.1.1] - 2025-09-08
 

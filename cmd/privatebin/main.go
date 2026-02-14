@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -88,12 +89,24 @@ var (
 
 			cfg, err := loadCfgFile(cfgPath)
 			if err != nil {
-				return fmt.Errorf("cannot load configuration: %w", err)
+				if !errors.Is(err, os.ErrNotExist) {
+					return fmt.Errorf("cannot load configuration: %w", err)
+				}
+				cfg = defaultConfig()
 			}
 
 			binCfg, err = findBinCfg(cfg, binName)
 			if err != nil {
-				return fmt.Errorf("cannot find %q bin configuration: %w", binName, err)
+				binCfg = &BinCfg{
+					Expire:            cfg.Expire,
+					OpenDiscussion:    &cfg.OpenDiscussion,
+					BurnAfterReading:  &cfg.BurnAfterReading,
+					GZip:              &cfg.GZip,
+					Formatter:         cfg.Formatter,
+					SkipTLSVerify:     &cfg.SkipTLSVerify,
+					Proxy:             cfg.Proxy,
+					ExtraHeaderFields: cfg.ExtraHeaderFields,
+				}
 			}
 
 			clientOptions = append(
@@ -231,6 +244,10 @@ var (
 		Short:        "Create a paste",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if binCfg.Host == "" {
+				return fmt.Errorf("no privatebin instance configured, please create a configuration file or use the --config flag")
+			}
+
 			if cmd.Flags().Changed("expire") {
 				binCfg.Expire = expire
 			}
@@ -346,7 +363,6 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
 }

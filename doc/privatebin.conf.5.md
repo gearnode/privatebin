@@ -150,6 +150,8 @@ Configuration using a SOCKS5 proxy (e.g. TOR):
 _~/.config/privatebin/config.json_
 : Default location of the privatebin configuration. The file has to be
 created manually as it is not installed with a standard installation.
+The configuration file is optional; when absent, the CLI uses sensible
+defaults (expire: 1day, formatter: plaintext, gzip: enabled).
 
 # AUTHORS
 
